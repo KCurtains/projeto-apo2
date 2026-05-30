@@ -23,6 +23,8 @@ CREATE TABLE Usuario(
 	Id INT PRIMARY KEY AUTO_INCREMENT,
     CPF VARCHAR(11) NOT NULL UNIQUE,
     Nome VARCHAR(100) NOT NULL,
+    Sexo ENUM('MASCULINO', 'FEMININO'),
+    DataNascimento DATE,
     Email VARCHAR(100) NOT NULL UNIQUE,
     Telefone VARCHAR(14), -- (XX)XXXXX-XXXX
     Senha VARCHAR(100) NOT NULL
@@ -337,7 +339,158 @@ BEGIN
 END //
 DELIMITER ;
 
+-- Veiculo
 
+DELIMITER //
 
+CREATE PROCEDURE AdicionarVeiculo(
+	IN p_Placa VARCHAR(7),
+    IN p_Modelo VARCHAR(50),
+    IN p_Cor VARCHAR(15),
+    IN p_MotoristaPrinc INT,
+    IN p_TipoVeiculo ENUM('CARRO', 'MOTO', 'CAMINHAO'))
+    
+BEGIN
+	
+	INSERT INTO Veiculo(Placa, Modelo, Cor, MotoristaPrincipal, TipoVeiculo) VALUES (p_Placa, p_Modelo, p_Cor, p_MotoristaPrinc, p_TipoVeiculo);
+        
+END //
+DELIMITER ;
+    
+DELIMITER //
+    
+CREATE PROCEDURE RemoverVeiculo (
+	IN p_VeiculoId INT)
+        
+BEGIN
+	
+    DELETE FROM Veiculo WHERE Id = p_VeiculoId;
+    
+END //
+DELIMITER;
 
+DELIMITER //
 
+CREATE PROCEDURE AdicionaMotorista(
+	IN p_ClienteId INT,
+    IN p_VeiculoId INT)
+
+BEGIN 
+
+	INSERT INTO VeiculoCliente(ClienteID, VeiculoId) VALUES (p_ClienteId, p_VeiculoId);
+
+END //
+DELIMITER ;
+
+DELIMITER //
+
+CREATE PROCEDURE UpdateVeiculo(
+	IN p_VeiculoId INT,
+    IN p_Modelo VARCHAR(50),
+    IN p_Cor VARCHAR(15),
+    IN p_MotoristaPrinc INT,
+    IN p_TipoVeiculo ENUM('CARRO', 'MOTO', 'CAMINHAO'))
+
+BEGIN
+
+	UPDATE Veiculo
+    SET Modelo = p_Modelo,
+		Cor = p_Cor,
+        MotoristaPrincipal = p_MotoristaPrinc,
+        TipoVeiculo = p_TipoVeiculo 
+	WHERE Id = p_VeiculoId;
+
+END //
+DELIMITER ;
+
+-- USUARIO
+
+DELIMITER // 
+
+CREATE PROCEDURE AdicionarUsuario(
+    IN p_CPF VARCHAR(11),
+    IN p_Nome VARCHAR(100),
+    IN P_Sexo ENUM('MASCULINO', 'FEMININO'),
+    IN p_DataNascimento DATE,
+    IN p_Email VARCHAR(100),
+    IN p_Telefone VARCHAR(14),
+    IN p_Senha VARCHAR(100))
+    
+BEGIN
+
+	INSERT INTO Usuario(CPF, Nome, Sexo, DataNascimento, Email, Telefone, Senha) VALUES (p_CPF, p_Nome, p_Sexo, p_DataNascimento, p_Email, p_Telefone, p_Senha);
+    
+END //
+DELIMITER ;
+
+DELIMITER //
+
+CREATE PROCEDURE UpdateUsuario(
+	IN p_IdUsuario INT,
+	IN p_Nome VARCHAR(100),
+    IN P_Sexo ENUM('MASCULINO', 'FEMININO'),
+    IN p_DataNascimento DATE,
+    IN p_Email VARCHAR(100),
+    IN p_Telefone VARCHAR(14),
+    IN p_Senha VARCHAR(100))
+    
+BEGIN
+
+	UPDATE Usuario
+	SET Nome = p_Nome,
+		Email = p_Email,
+        Telefone = p_Telefone,
+        Senha = p_Senha
+	WHERE Id = p_IdUsuario;
+
+END //
+DELIMITER ;
+
+DELIMITER //
+
+CREATE PROCEDURE RemoveUsuario(
+	IN p_IdUsuario INT)
+    
+BEGIN
+
+	DELETE FROM Usuario WHERE Id = p_IdUsuario;
+
+END //
+DELIMITER ;
+
+DELIMITER //
+
+CREATE PROCEDURE AdicionaCliente(
+	IN p_CPF VARCHAR(11),
+    IN p_Nome VARCHAR(100),
+    IN P_Sexo ENUM('MASCULINO', 'FEMININO'),
+    IN p_DataNascimento DATE,
+    IN p_Email VARCHAR(100),
+    IN p_Telefone VARCHAR(14),
+    IN p_Senha VARCHAR(100),
+    IN p_Mensalista BOOLEAN)
+    
+BEGIN 
+
+	DECLARE p_UsuarioId INT;
+    CALL AdicionarUsuario(p_Nome, p_Cpf, p_Telefone, p_Sexo, p_DataNascimento, p_Email, p_Senha);
+    SET v_UsuarioId = LAST_INSERT_ID();
+    INSERT INTO Cliente (Id, Mensalista) VALUES (v_UsuarioId, p_Mensalista);
+    
+END //
+DELIMITER ;
+
+DELIMITER //
+
+CREATE PROCEDURE UpdateCliente(
+	IN p_IdCliente INT,
+    IN p_Mensalista BOOLEAN)
+    
+BEGIN
+	
+    UPDATE Cliente
+	SET Mensalista = p_Mensalista WHERE Id = p_IdCliente;
+
+END //
+DELIMITER ;
+        
