@@ -1,0 +1,42 @@
+package model;
+
+public class Patio {
+
+	public int Id;
+	public int CapacidadeCarro;
+	public int CapacidadeMoto;
+	public int CapacidadeCaminhao;
+	
+	public Patio(int id, int capacidadeCarro, int capacidadeMoto, int capacidadeCaminhao) {
+		super();
+		Id = id;
+		CapacidadeCarro = capacidadeCarro;
+		CapacidadeMoto = capacidadeMoto;
+		CapacidadeCaminhao = capacidadeCaminhao;
+	}
+	
+	public int getId() {
+		return Id;
+	}
+	public void setId(int id) {
+		Id = id;
+	}
+	public int getCapacidadeCarro() {
+		return CapacidadeCarro;
+	}
+	public void setCapacidadeCarro(int capacidadeCarro) {
+		CapacidadeCarro = capacidadeCarro;
+	}
+	public int getCapacidadeMoto() {
+		return CapacidadeMoto;
+	}
+	public void setCapacidadeMoto(int capacidadeMoto) {
+		CapacidadeMoto = capacidadeMoto;
+	}
+	public int getCapacidadeCaminhao() {
+		return CapacidadeCaminhao;
+	}
+	public void setCapacidadeCaminhao(int capacidadeCaminhao) {
+		CapacidadeCaminhao = capacidadeCaminhao;
+	}
+}
