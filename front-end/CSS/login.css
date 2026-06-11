@@ -1,0 +1,75 @@
+@charset "UTF-8";
+
+.auth-card {
+    background-color: #ffffff;
+    border-radius: 20px;
+    padding: 30px 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    max-width: 400px;
+    margin: 0 auto 20px auto; 
+}
+
+.form-control {
+    border-radius: 20px;
+    margin-bottom: 15px;
+    border: 1px solid #ced4da;
+    padding: 10px 15px;
+}
+
+.btn-orange {
+    background-color: #f98825;
+    color: white;
+    border-radius: 25px;
+    padding: 10px;
+    font-weight: bold;
+    width: 100%;
+    border: none;
+}
+.btn-orange:hover {
+    background-color: #e07a21;
+    color: white;
+}
+
+.logo-area {
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 2rem;
+    font-weight: 900;
+}
+
+.back-btn {
+    color: #dc3545;
+    font-size: 1.2rem;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.dots-container {
+    text-align: center;
+    margin: 20px 0;
+}
+
+.dot {
+    height: 8px;
+    width: 8px;
+    background-color: #bbb;
+    border-radius: 50%;
+    display: inline-block;
+    margin: 0 3px;
+}
+
+.dot.active {
+    background-color: #f98825;
+}
+
+.link-text {
+    font-size: 0.85rem;
+    color: #666;
+    text-decoration: none;
+}
+
+.link-text span {
+    color: #f98825;
+    cursor: pointer;
+    font-weight: bold;
+}

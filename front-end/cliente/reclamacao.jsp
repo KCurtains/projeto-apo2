@@ -1,0 +1,198 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EasyParking - Reclamações</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../CSS/global.css">
+    <link rel="stylesheet" href="../CSS/cliente.css">
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <div class="header-title">
+            Reclamações
+        </div>
+
+        <div class="content-area">
+            <div id="empty-state-reclamacoes" class="text-center text-muted mt-5 d-none">
+                <p>Você não tem reclamações listadas.<br>Clique no botão + para que possamos<br>te ajudar</p>
+            </div>
+
+            <div id="list-state-reclamacoes">
+                </div>
+        </div>
+
+        <div class="fab" onclick="abrirModalCriarReclamacao()">+</div>
+
+        <div class="bottom-nav">
+            <a href="reserva.jsp" class="nav-item"><i class="bi bi-list-task"></i></a>
+            <a href="reclamacao.jsp" class="nav-item active"><i class="bi bi-exclamation-circle"></i></a>
+            <a href="veiculo.jsp" class="nav-item"><i class="bi bi-car-front"></i></a>
+            <a href="perfil.jsp" class="nav-item"><i class="bi bi-person-circle"></i></a>
+        </div>
+
+    </div>
+
+    <div class="modal fade" id="modalCriarReclamacao" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Reclamações</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="form-nova-reclamacao">
+                        <label class="small text-muted">Reserva Relacionada</label>
+                        <select class="form-select" id="recReserva" required>
+                            <option value="" disabled selected>Selecione a reserva...</option>
+                            <option value="1">Ford Ka (AVW4G37) - 23/04/2026</option>
+                        </select>
+
+                        <label class="small text-muted">Reclamação</label>
+                        <div class="position-relative">
+                            <textarea class="form-control" id="recTexto" rows="6" placeholder="Conte-nos sobre seu problema" maxlength="2000" required></textarea>
+                            <small class="text-muted position-absolute" style="bottom: 10px; right: 15px; font-size: 0.7rem;" id="charCount">0/2000</small>
+                        </div>
+
+                        <p class="text-muted small text-center mt-3" style="font-size: 0.75rem;">
+                            Após enviado, a reclamação entrará em análise. Em breve entraremos em contato por email ou whatsapp.
+                        </p>
+                    </form>
+                </div>
+                <div class="modal-footer pb-4">
+                    <button type="button" class="btn btn-orange" onclick="salvarReclamacao()">Enviar Reclamação</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalInfoReclamacao" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Reclamações</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <small class="text-muted d-block">Veículo</small>
+                        <strong id="infoRecVeiculo">Ford Ka 2012 Vermelho - AVW4G37</strong>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted d-block">Data da Reserva</small>
+                        <strong id="infoRecData">23/04/2026</strong>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted d-block">Reclamação</small>
+                        <strong id="infoRecTexto">"[texto da reclamação aqui]"</strong>
+                    </div>
+                    <div class="mb-4">
+                        <small class="text-muted d-block">Status</small>
+                        <strong id="infoRecStatus">em análise</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            carregarReclamacoes();
+
+            $('#recTexto').on('input', function() {
+                var currentLength = $(this).val().length;
+                $('#charCount').text(currentLength + '/2000');
+            });
+        });
+
+        function carregarReclamacoes() {
+            const reclamacoesMock = [
+                { id: 1, data: "23/04/2026", status: "Em Análise" }
+            ];
+            
+            renderizarListaReclamacoes(reclamacoesMock); 
+        }
+
+        function renderizarListaReclamacoes(reclamacoes) {
+            const listDiv = $('#list-state-reclamacoes');
+            listDiv.empty();
+
+            if(reclamacoes.length === 0) {
+                $('#empty-state-reclamacoes').removeClass('d-none');
+                $('#list-state-reclamacoes').addClass('d-none');
+            } else {
+                $('#empty-state-reclamacoes').addClass('d-none');
+                $('#list-state-reclamacoes').removeClass('d-none');
+
+                reclamacoes.forEach(rec => {
+                    const cardHtml = `
+                        <div class="reclamacao-card">
+                            <div>
+                                <strong class="d-block">`+ rec.data +`</strong>
+                                <span class="badge-analise">`+ rec.status +`</span>
+                            </div>
+                            <div>
+                                <button class="btn btn-icon-orange btn-sm rounded-3" onclick="abrirModalInfoReclamacao(`+ rec.id +`)">
+                                    <i class="bi bi-info-circle"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    listDiv.append(cardHtml);
+                });
+            }
+        }
+
+        function abrirModalCriarReclamacao() {
+            $('#form-nova-reclamacao')[0].reset();
+            $('#charCount').text('0/2000');
+            
+            var myModal = new bootstrap.Modal(document.getElementById('modalCriarReclamacao'));
+            myModal.show();
+        }
+
+        function abrirModalInfoReclamacao(id) {
+            var myModal = new bootstrap.Modal(document.getElementById('modalInfoReclamacao'));
+            myModal.show();
+        }
+
+        function salvarReclamacao() {
+            const dadosReclamacao = {
+                idReserva: $('#recReserva').val(),
+                texto: $('#recTexto').val()
+            };
+
+            if(!dadosReclamacao.idReserva || !dadosReclamacao.texto) {
+                alert("Por favor, preencha todos os campos.");
+                return;
+            }
+
+            $.ajax({
+                url: 'CriarReclamacaoServlet', 
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(dadosReclamacao),
+                dataType: 'json',
+                success: function(response) {
+                    alert("Reclamação enviada com sucesso!");
+                    $('#modalCriarReclamacao').modal('hide');
+                    carregarReclamacoes(); 
+                },
+                error: function() {
+                    alert("Simulação: POST disparado para 'CriarReclamacaoServlet'.");
+                    $('#modalCriarReclamacao').modal('hide');
+                }
+            });
+        }
+    </script>
+</body>
+</html>

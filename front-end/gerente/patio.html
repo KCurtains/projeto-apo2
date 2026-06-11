@@ -1,0 +1,362 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EasyParking - Gestão de Pátios</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../CSS/global.css">
+    <link rel="stylesheet" href="../CSS/gerente.css">
+    
+    <style>
+        body {
+            background-color: #f4f4f4;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        
+        .app-container {
+            width: 100%;
+            background-color: #ffffff;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            overflow-x: hidden;
+        }
+
+        .header-title {
+            padding: 30px 20px 20px 20px;
+            font-weight: 900;
+            font-size: 1.6rem;
+        }
+
+        .content-area {
+            flex-grow: 1;
+            padding: 0 20px 20px 20px;
+            overflow-y: auto;
+            padding-bottom: 90px;
+        }
+
+        .patio-card {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .form-control:read-only { 
+        background-color: #f1f1f1; 
+        color: #666; 
+        cursor: not-allowed; 
+        }
+
+        .patio-name {
+            font-weight: bold;
+            font-size: 1rem;
+            color: #333;
+        }
+
+        .btn-icon-orange { background-color: #f98825; color: white; border: none; padding: 5px 10px; }
+        .btn-icon-orange:hover { background-color: #e07a21; color: white; }
+
+        .fab {
+            position: absolute;
+            bottom: 80px;
+            right: 20px;
+            background-color: #f98825;
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            box-shadow: 0 4px 10px rgba(249, 136, 37, 0.4);
+            cursor: pointer;
+            z-index: 1000;
+        }
+
+        .bottom-nav {
+            background-color: #ffffff;
+            border-top: 1px solid #ddd;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+
+        .nav-item {
+            color: #333;
+            font-size: 1.5rem;
+            padding: 5px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .nav-item.active {
+            background-color: #f98825;
+            color: white;
+        }
+
+        .modal-content { border-radius: 15px; border: none; }
+        .modal-header { border-bottom: none; padding-bottom: 0; }
+        .modal-footer { border-top: none; }
+        .form-control { border-radius: 5px; margin-bottom: 15px; border: 1px solid #666; }
+        
+        .btn-orange { background-color: #f98825; color: white; font-weight: bold; border-radius: 20px; width: 100%; padding: 10px; border: none; }
+        .btn-orange:hover { background-color: #e07a21; color: white; }
+        .btn-red { background-color: #dc3545; color: white; font-weight: bold; border-radius: 20px; width: 100%; padding: 10px; border: none; }
+        .btn-red:hover { background-color: #bb2d3b; color: white; }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <div class="header-title container-md">
+            Pátios
+        </div>
+
+        <div class="content-area container-md">
+            
+            <div id="empty-state" class="text-center text-muted mt-5 d-none">
+                <p>Nenhum pátio cadastrado.</p>
+            </div>
+
+            <div id="list-state">
+                </div>
+
+        </div>
+
+        <div class="fab" onclick="abrirModalAddPatio()">+</div>
+
+        <div class="bottom-nav">
+            <a href="relatorio.jsp" class="nav-item"><i class="bi bi-list-task"></i></a>
+            <a href="patio.jsp" class="nav-item active"><i class="bi bi-exclamation-circle"></i></a>
+            <a href="reclamacao_gerente.jsp" class="nav-item"><i class="bi bi-car-front"></i></a>
+            <a href="perfil_gerente.jsp" class="nav-item"><i class="bi bi-person-circle"></i></a>
+        </div>
+
+    </div>
+
+    <div class="modal fade" id="modalAddPatio" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Adicionar Pátio</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body pb-0">
+                    <form id="form-add-patio">
+                        <label class="small text-muted mb-1">Endereço / Nome do Pátio</label>
+                        <input type="text" class="form-control" id="addPatioNome" required>
+                        
+                        <label class="small text-muted mb-1">Vagas Totais</label>
+                        <input type="number" class="form-control" id="addPatioVagasTotais" required>
+                        
+                        <label class="small text-muted mb-1">Vagas de Carro</label>
+                        <input type="number" class="form-control" id="addPatioVagasCarro" required>
+                        
+                        <label class="small text-muted mb-1">Vagas de Moto</label>
+                        <input type="number" class="form-control" id="addPatioVagasMoto" required>
+                        
+                        <label class="small text-muted mb-1">Vagas de Caminhão</label>
+                        <input type="number" class="form-control" id="addPatioVagasCaminhao" required>
+                        
+                        <label class="small text-muted mb-1">Vagas para Mensalistas</label>
+                        <input type="number" class="form-control" id="addPatioVagasMensalistas" required>
+                    </form>
+                </div>
+                <div class="modal-footer pb-4 pt-2">
+                    <button type="button" class="btn btn-orange" onclick="salvarNovoPatio()">Adicionar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalEditPatio" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Editar Pátio</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body pb-0">
+                    <form id="form-edit-patio">
+                        <input type="hidden" id="editPatioId">
+                        
+                        <label class="small text-muted mb-1">Endereço / Nome do Pátio</label>
+                        <input type="text" class="form-control" id="editPatioNome" readonly>
+                        
+                        <label class="small text-muted mb-1">Vagas Totais</label>
+                        <input type="number" class="form-control" id="editPatioVagasTotais" required>
+                        
+                        <label class="small text-muted mb-1">Vagas de Carro</label>
+                        <input type="number" class="form-control" id="editPatioVagasCarro" required>
+                        
+                        <label class="small text-muted mb-1">Vagas de Moto</label>
+                        <input type="number" class="form-control" id="editPatioVagasMoto" required>
+                        
+                        <label class="small text-muted mb-1">Vagas de Caminhão</label>
+                        <input type="number" class="form-control" id="editPatioVagasCaminhao" required>
+                        
+                        <label class="small text-muted mb-1">Vagas para Mensalistas</label>
+                        <input type="number" class="form-control" id="editPatioVagasMensalistas" required>
+                    </form>
+                </div>
+                <div class="modal-footer flex-column pb-4 gap-2 pt-2">
+                    <button type="button" class="btn btn-orange" onclick="atualizarPatio()">Salvar</button>
+                    <button type="button" class="btn btn-red" onclick="removerPatio()">Remover Pátio</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalInfoPatio" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Informações do Pátio</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body pb-4">
+                    <div class="mb-2"><small class="text-muted d-block">Nome / Endereço</small><strong id="infoNome"></strong></div>
+                    <div class="mb-2"><small class="text-muted d-block">Vagas Totais</small><strong id="infoTotais"></strong></div>
+                    <div class="row">
+                        <div class="col-6 mb-2"><small class="text-muted d-block">Carros</small><strong id="infoCarros"></strong></div>
+                        <div class="col-6 mb-2"><small class="text-muted d-block">Motos</small><strong id="infoMotos"></strong></div>
+                        <div class="col-6 mb-2"><small class="text-muted d-block">Caminhões</small><strong id="infoCaminhoes"></strong></div>
+                        <div class="col-6 mb-2"><small class="text-muted d-block">Mensalistas</small><strong id="infoMensalistas"></strong></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            carregarPatios();
+        });
+
+        function carregarPatios() {
+            const patiosMock = [
+                { 
+                    id: 1, 
+                    nome: "Rua cinco, 123 - SP", 
+                    vagasTotais: 80,
+                    vagasCarro: 50,
+                    vagasMoto: 20,
+                    vagasCaminhao: 10,
+                    vagasMensalistas: 15
+                }
+            ];
+            
+            const listDiv = $('#list-state');
+            listDiv.empty();
+
+            if(patiosMock.length === 0) {
+                $('#empty-state').removeClass('d-none');
+                $('#list-state').addClass('d-none');
+            } else {
+                $('#empty-state').addClass('d-none');
+                $('#list-state').removeClass('d-none');
+
+                patiosMock.forEach(patio => {
+                    const patioData = encodeURIComponent(JSON.stringify(patio));
+
+                    const cardHtml = `
+                        <div class="patio-card">
+                            <div class="patio-name">`+ patio.nome +`</div>
+                            <div>
+                                <button class="btn btn-icon-orange rounded-3 me-1" onclick="abrirModalInfo('`+ patioData +`')">
+                                    <i class="bi bi-info-circle"></i>
+                                </button>
+                                <button class="btn btn-icon-orange rounded-3" onclick="abrirModalEdit('`+ patioData +`')">
+                                    <i class="bi bi-pencil-square"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    listDiv.append(cardHtml);
+                });
+            }
+        }
+
+        function abrirModalAddPatio() {
+            $('#form-add-patio')[0].reset();
+            var myModal = new bootstrap.Modal(document.getElementById('modalAddPatio'));
+            myModal.show();
+        }
+
+        function salvarNovoPatio() {
+            alert("Novo pátio adicionado com sucesso!");
+            $('#modalAddPatio').modal('hide');
+            carregarPatios();
+        }
+
+        function abrirModalEdit(patioDataEncoded) {
+            const patio = JSON.parse(decodeURIComponent(patioDataEncoded));
+
+            $('#editPatioId').val(patio.id);
+            $('#editPatioNome').val(patio.nome);
+            $('#editPatioVagasTotais').val(patio.vagasTotais);
+            $('#editPatioVagasCarro').val(patio.vagasCarro);
+            $('#editPatioVagasMoto').val(patio.vagasMoto);
+            $('#editPatioVagasCaminhao').val(patio.vagasCaminhao);
+            $('#editPatioVagasMensalistas').val(patio.vagasMensalistas);
+
+            var myModal = new bootstrap.Modal(document.getElementById('modalEditPatio'));
+            myModal.show();
+        }
+
+        function atualizarPatio() {
+            alert("Pátio atualizado com sucesso!");
+            $('#modalEditPatio').modal('hide');
+            carregarPatios();
+        }
+
+        function removerPatio() {
+            const id = $('#editPatioId').val();
+            if(confirm("ATENÇÃO: Deseja realmente remover este pátio?")) {
+                alert("Pátio removido com sucesso!");
+                $('#modalEditPatio').modal('hide');
+                carregarPatios();
+            }
+        }
+
+        function abrirModalInfo(patioDataEncoded) {
+            const patio = JSON.parse(decodeURIComponent(patioDataEncoded));
+
+            $('#infoNome').text(patio.nome);
+            $('#infoTotais').text(patio.vagasTotais);
+            $('#infoCarros').text(patio.vagasCarro);
+            $('#infoMotos').text(patio.vagasMoto);
+            $('#infoCaminhoes').text(patio.vagasCaminhao);
+            $('#infoMensalistas').text(patio.vagasMensalistas);
+
+            var myModal = new bootstrap.Modal(document.getElementById('modalInfoPatio'));
+            myModal.show();
+        }
+    </script>
+</body>
+</html>
