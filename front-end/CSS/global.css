@@ -1,0 +1,70 @@
+@charset "UTF-8";
+
+body {
+    background-color: #f4f4f4;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-height: 100vh;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; 
+}
+
+.app-container {
+    width: 100%;
+    background-color: #ffffff;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; 
+    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    overflow-x: hidden;
+}
+
+.header-title {
+    padding: 30px 20px 20px 20px;
+    font-weight: 900;
+    font-size: 1.6rem;
+}
+
+.footer-text {
+    text-align: center;
+    font-size: 0.75rem;
+    color: #888;
+    padding-bottom: 20px;
+    width: 100%;
+}
+
+.bottom-nav {
+    background-color: #ffffff;
+    border-top: 1px solid #ddd;
+    display: flex;
+    justify-content: space-around;
+    align-items: center; 
+    padding: 10px 0;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    z-index: 1000;
+}
+
+.nav-item {
+    color: #000000; 
+    font-size: 1.5rem;
+    padding: 5px 25px; 
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.nav-item.active {
+    background-color: #f98825;
+    color: #000000; 
+}
+
+a.nav-item {
+    text-decoration: none;
+}

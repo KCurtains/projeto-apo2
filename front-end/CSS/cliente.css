@@ -1,0 +1,157 @@
+@charset "UTF-8";
+
+.reserva-card, 
+.reclamacao-card, 
+.item-card {
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;       
+    padding: 20px 24px;         
+    margin-bottom: 18px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.06);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 85px;          
+}
+
+.reserva-card strong, 
+.item-card-text {
+    font-size: 1.1rem !important; 
+}
+
+.reserva-card small {
+    font-size: 0.9rem !important;  
+    display: block;
+    margin-bottom: 2px;
+}
+
+.reserva-card .btn, 
+.item-card .btn,
+.reclamacao-card .btn {
+    padding: 8px 14px !important; 
+    border-radius: 8px !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.reserva-card .btn i,
+.item-card .btn i,
+.reclamacao-card .btn i {
+    font-size: 1.25rem !important; 
+}
+
+.btn-icon-orange { 
+    background-color: #f98825; 
+    color: white; 
+    border: none;
+}
+.btn-icon-orange:hover { 
+    background-color: #e07a21; 
+    color: white; 
+}
+
+.btn-icon-red { 
+    background-color: #dc3545; 
+    color: white; 
+    border: none;
+}
+.btn-icon-red:hover { 
+    background-color: #bb2d3b; 
+    color: white; 
+}
+
+.btn-check-orange {
+    background-color: #f98825;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    padding: 5px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.btn-check-orange:hover { 
+    background-color: #e07a21; 
+    color: white; 
+}
+
+.fab {
+    position: absolute;
+    bottom: 80px;
+    right: 20px;
+    background-color: #f98825;
+    color: white;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    box-shadow: 0 4px 10px rgba(249, 136, 37, 0.4);
+    cursor: pointer;
+    z-index: 1000;
+}
+.fab:hover {
+    background-color: #e07a21;
+}
+
+.badge-analise {
+    background-color: #fce83a;
+    color: #333;
+    font-weight: bold;
+    font-size: 0.75rem;
+    padding: 5px 10px;
+    border-radius: 15px;
+    display: inline-block;
+    margin-top: 5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.valor-total-text {
+    color: #f98825;
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.form-control:read-only { 
+    background-color: #f1f1f1; 
+    color: #666; 
+    cursor: not-allowed; 
+}
+
+.profile-block {
+    margin-bottom: 20px;
+}
+
+.profile-label {
+    font-size: 0.8rem;
+    color: #888;
+    margin-bottom: 2px;
+    display: block;
+}
+
+.profile-value {
+    font-weight: bold;
+    font-size: 1rem;
+    color: #000;
+}
+
+.edit-icon {
+    color: #333;
+    cursor: pointer;
+    font-size: 1.1rem;
+    transition: color 0.2s;
+}
+.edit-icon:hover {
+    color: #f98825;
+}
+
+.form-control-edit {
+    border-radius: 5px;
+    border: 1px solid #666;
+    width: 100%;
+    padding: 5px 10px;
+}

@@ -1,0 +1,103 @@
+@charset "UTF-8";
+
+.reserva-card, 
+.estadia-card, 
+.item-card, 
+.reclamacao-card {
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 18px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.06);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 85px;
+}
+
+.reserva-card strong, 
+.estadia-card strong, 
+.reclamacao-card strong, 
+.item-card-text {
+    font-size: 1.1rem !important;
+}
+
+.reserva-card small, 
+.estadia-card small, 
+.reclamacao-card small {
+    font-size: 0.9rem !important;
+    display: block;
+    margin-bottom: 2px;
+}
+
+.reserva-card .btn, 
+.estadia-card .btn, 
+.item-card .btn, 
+.reclamacao-card .btn {
+    padding: 8px 14px !important;
+    border-radius: 8px !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.reserva-card .btn i, 
+.estadia-card .btn i, 
+.item-card .btn i, 
+.reclamacao-card .btn i {
+    font-size: 1.25rem !important;
+}
+
+.btn-icon-orange { background-color: #f98825; color: white; border: none; }
+.btn-icon-orange:hover { background-color: #e07a21; color: white; }
+
+.btn-icon-red { background-color: #dc3545; color: white; border: none; }
+.btn-icon-red:hover { background-color: #bb2d3b; color: white; }
+
+.search-label {
+    font-weight: bold;
+    color: #999;
+    font-size: 1.1rem;
+    margin-bottom: 5px;
+    display: block;
+}
+.input-group-search .form-control { 
+    border: 1px solid #333; 
+    border-radius: 5px 0 0 5px; 
+}
+.input-group-search .btn { 
+    border: 1px solid #333; 
+    border-radius: 0 5px 5px 0; 
+    border-left: none; 
+}
+
+.badge-status {
+    color: #333;
+    font-weight: bold;
+    font-size: 0.75rem;
+    padding: 5px 10px;
+    border-radius: 15px;
+    display: inline-block;
+    margin-top: 5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.status-analise { background-color: #fce83a; }
+.status-resolvido { background-color: #4caf50; color: white; }
+.status-nao-resolvido { background-color: #f44336; color: white; }
+
+.modal-content { border-radius: 15px; border: none; }
+.modal-header { border-bottom: none; padding-bottom: 0; }
+.modal-footer { border-top: none; }
+.form-select { border-radius: 10px; border: 1px solid #ccc; font-weight: bold; }
+
+.btn-orange {
+    background-color: #f98825; 
+    color: white; 
+    font-weight: bold; 
+    border-radius: 20px; 
+    width: 100%; 
+    padding: 10px; 
+    border: none; 
+}
+.btn-orange:hover { background-color: #e07a21; color: white; }
