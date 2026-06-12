@@ -14,7 +14,7 @@
 </head>
 <body>
 
-    <div class="app-container">
+    <div class="app-container container">
         
         <div class="header-title container-md">
             Relatórios Mensais

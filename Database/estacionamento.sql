@@ -74,8 +74,8 @@ CREATE TABLE VeiculoCliente(
 
 CREATE TABLE Reserva(
     Id INT PRIMARY KEY AUTO_INCREMENT,
-    HorarioEntrada TIMESTAMP NOT NULL,
-    HorarioSaida TIMESTAMP NOT NULL,
+    HorarioEntrada TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    HorarioSaida TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     Valor DECIMAL(10,2),
     StatusReserva ENUM('ATIVA', 'CANCELADA', 'FINALIZADA', 'EXPIRADA') NOT NULL,
     PatioId INT,
@@ -89,8 +89,8 @@ CREATE TABLE Reserva(
 
 CREATE TABLE RegistroEstadia(
     Id INT PRIMARY KEY AUTO_INCREMENT,
-    HorarioEntradaReal TIMESTAMP NOT NULL,
-    HorarioSaidaReal TIMESTAMP DEFAULT NULL,
+    HorarioEntradaReal TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    HorarioSaidaReal TIMESTAMP DEFAULT NULL DEFAULT CURRENT_TIMESTAMP,
     ReservaId INT,
     
     CONSTRAINT fk_reserva_r FOREIGN KEY (ReservaId) REFERENCES Reserva(Id)
@@ -533,6 +533,18 @@ BEGIN
     
     INSERT INTO Reserva(HorarioEntrada, HorarioSaida, Valor, StatusReserva, PatioId, VeiculoId, VagaId)
     VALUES (CURRENT_TIMESTAMP, DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 1 MONTH), p_Valor, 'ATIVA', p_PatioId, p_VeiculoId, p_VagaId);
+END //
+
+DELIMITER ;
+
+DELIMITER //
+
+CREATE PROCEDURE BuscaUsuarioEmail(
+	IN p_Email VARCHAR(100)
+)
+BEGIN
+	SELECT Id, CPF, Nome, Email, Sexo, DataNascimento, Email, Telefone FROM Usuario WHERE
+    Email = p_Email;
 END //
 
 DELIMITER ;

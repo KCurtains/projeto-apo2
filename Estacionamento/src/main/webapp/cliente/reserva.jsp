@@ -13,7 +13,7 @@
 </head>
 <body>
 
-    <div class="app-container">
+    <div class="app-container container">
         
         <div class="header-title">
             Suas Reservas
@@ -148,8 +148,6 @@
         });
 
         function carregarReservas() {
-            // Para o seu projeto real, descomente o $.ajax
-            /*
             $.ajax({
                 url: 'ListarReservasServlet',
                 type: 'GET',
@@ -159,7 +157,7 @@
                 },
                 error: function(err) { console.error(err); }
             });
-            */
+
             
 
             const reservasMock = [

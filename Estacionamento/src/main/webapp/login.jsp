@@ -17,7 +17,7 @@
         
         <div id="view-login">
             <div class="logo-area">
-                <img src="imagens/logo.jpeg" alt="EasyParking Logo" style="max-width: 100%; border-radius:10px;">
+                <img src="imagens/logo.png" alt="EasyParking Logo" style="max-width: 100%; border-radius:10px;">
             </div>
             
             <div class="auth-card text-center">

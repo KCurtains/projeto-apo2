@@ -13,7 +13,7 @@
 </head>
 <body>
 
-    <div class="app-container">
+    <div class="app-container container">
         
         <div class="header-title container-md">Perfil</div>
 
@@ -90,7 +90,7 @@
 
         <div class="bottom-nav">
             <a href="reserva.jsp" class="nav-item"><i class="bi bi-list-task"></i></a>
-            <a href="reclamacao.jsp" class="nav-item active"><i class="bi bi-exclamation-circle"></i></a>
+            <a href="reclamacao.jsp" class="nav-item"><i class="bi bi-exclamation-circle"></i></a>
             <a href="veiculo.jsp" class="nav-item"><i class="bi bi-car-front"></i></a>
             <a href="perfil.jsp" class="nav-item active"><i class="bi bi-person-circle"></i></a>
         </div>

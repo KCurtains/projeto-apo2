@@ -13,9 +13,9 @@
 </head>
 <body>
 
-    <div class="app-container">
+    <div class="app-container container">
         
-        <div id="view-veiculos" class="h-100 d-flex flex-column w-100">
+        <div id="view-veiculos" class="h-100 d-flex flex-column w-100 container">
             <div class="header-title">Veículos</div>
             <div class="content-area" id="list-veiculos"></div>
             <div class="fab" onclick="abrirModalAddVeiculo()">+</div>
