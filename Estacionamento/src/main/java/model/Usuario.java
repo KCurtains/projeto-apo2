@@ -1,6 +1,6 @@
 package model;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 import Enum.SexoEnum;
 
@@ -10,12 +10,12 @@ public class Usuario {
 	public String Cpf;
 	public String Nome;
 	public SexoEnum Sexo;
-	public LocalDateTime DataNascimento;
+	public LocalDate DataNascimento;
 	public String Email;
 	public String Telefone;
 	public String Senha; //Hash
 	
-	public Usuario(int id, String cpf, String nome, SexoEnum sexo, LocalDateTime dataNascimento, String email,
+	public Usuario(int id, String cpf, String nome, SexoEnum sexo, LocalDate dataNascimento, String email,
 			String telefone, String senha) {
 		super();
 		Id = id;
@@ -52,10 +52,10 @@ public class Usuario {
 	public void setSexo(SexoEnum sexo) {
 		Sexo = sexo;
 	}
-	public LocalDateTime getDataNascimento() {
+	public LocalDate getDataNascimento() {
 		return DataNascimento;
 	}
-	public void setDataNascimento(LocalDateTime dataNascimento) {
+	public void setDataNascimento(LocalDate dataNascimento) {
 		DataNascimento = dataNascimento;
 	}
 	public String getEmail() {
