@@ -1,10 +1,14 @@
 @charset "UTF-8";
 
+/* ==========================================================================
+   ESTILOS ESTÊTICOS GERAIS (Celular e PC)
+   ========================================================================== */
 .auth-card {
     background-color: #ffffff;
     border-radius: 20px;
     padding: 30px 20px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    width: 100%;
     max-width: 400px;
     margin: 0 auto 20px auto; 
 }
@@ -33,33 +37,6 @@
 .logo-area {
     text-align: center;
     margin-bottom: 30px;
-    font-size: 2rem;
-    font-weight: 900;
-}
-
-.back-btn {
-    color: #dc3545;
-    font-size: 1.2rem;
-    text-decoration: none;
-    cursor: pointer;
-}
-
-.dots-container {
-    text-align: center;
-    margin: 20px 0;
-}
-
-.dot {
-    height: 8px;
-    width: 8px;
-    background-color: #bbb;
-    border-radius: 50%;
-    display: inline-block;
-    margin: 0 3px;
-}
-
-.dot.active {
-    background-color: #f98825;
 }
 
 .link-text {
@@ -67,9 +44,88 @@
     color: #666;
     text-decoration: none;
 }
-
 .link-text span {
     color: #f98825;
     cursor: pointer;
     font-weight: bold;
+}
+
+.back-btn {
+    cursor: pointer;     
+    user-select: none;    
+    display: inline-block;
+    padding: 5px;          
+    transition: transform 0.2s ease;
+}
+.back-btn:hover {
+    color: #f98825;        
+    transform: scale(1.1); 
+}
+
+/* ==========================================================================
+   ADAPTAÇÃO EXCLUSIVA PARA O PC (Telas Maiores)
+   ========================================================================== */
+@media (min-width: 768px) {
+
+    .app-container {
+        max-width: 850px !important;  
+        min-height: 520px !important;   
+        height: auto !important;
+        border-radius: 24px;          
+        padding: 40px !important;
+        margin: 10vh auto !important; 
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+    }
+
+    /* O login só fica em duas colunas se estiver ativo */
+    #view-login:not(.d-none) {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: space-around !important;
+        width: 100%;
+    }
+
+    .logo-area {
+        margin: 0 !important;
+        width: 45%;
+        display: flex;
+        justify-content: center;
+    }
+
+    #view-login .auth-card {
+        width: 45%;
+        margin: 0 !important;
+        box-shadow: none !important; 
+        border-left: 1px solid #eee; 
+        padding-left: 45px;
+        border-radius: 0;
+    }
+
+    /* As telas de cadastro e recuperação só ganham alinhamento se estiverem ativas */
+    #view-cadastro-1:not(.d-none), 
+    #view-cadastro-codigo:not(.d-none), 
+    #view-cadastro-2:not(.d-none), 
+    #view-cadastro-3:not(.d-none),
+    #view-recuperar-1:not(.d-none), 
+    #view-recuperar-2:not(.d-none), 
+    #view-recuperar-3:not(.d-none) {
+        width: 100%;
+        display: flex !important;
+        justify-content: center !important;
+    }
+
+    /* FORÇA BRUTA: Se qualquer uma das telas tiver a classe d-none, ela SOME completamente */
+    #view-login.d-none,
+    #view-cadastro-1.d-none,
+    #view-cadastro-codigo.d-none,
+    #view-cadastro-2.d-none,
+    #view-cadastro-3.d-none,
+    #view-recuperar-1.d-none,
+    #view-recuperar-2.d-none,
+    #view-recuperar-3.d-none {
+        display: none !important;
+    }
 }

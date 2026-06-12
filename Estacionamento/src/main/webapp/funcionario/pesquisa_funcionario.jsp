@@ -14,7 +14,7 @@
 </head>
 <body>
 
-    <div class="app-container">
+    <div class="app-container container">
         
         <div id="view-consulta" class="d-flex flex-column h-100">
             <div class="header-title container-md">Clientes</div>

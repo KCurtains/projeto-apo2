@@ -16,11 +16,13 @@
 }
 
 .reserva-card strong, 
+.reclamacao-card strong, 
 .item-card-text {
     font-size: 1.1rem !important; 
 }
 
-.reserva-card small {
+.reserva-card small 
+.reclamacao-card small{
     font-size: 0.9rem !important;  
     display: block;
     margin-bottom: 2px;
@@ -62,6 +64,27 @@
     color: white; 
 }
 
+.btn-orange {
+    background-color: #f98825; 
+    color: white; 
+    font-weight: bold; 
+    border-radius: 20px; 
+    width: 100%; 
+    padding: 10px; 
+    border: none; 
+}
+
+.btn-red {
+    background-color: #dc3545; 
+    color: white; 
+    font-weight: bold; 
+    border-radius: 20px; 
+    width: 100%; 
+    padding: 10px; 
+    border: none; 
+}
+
+
 .btn-check-orange {
     background-color: #f98825;
     color: white;
@@ -72,6 +95,8 @@
     align-items: center;
     justify-content: center;
 }
+
+
 .btn-check-orange:hover { 
     background-color: #e07a21; 
     color: white; 

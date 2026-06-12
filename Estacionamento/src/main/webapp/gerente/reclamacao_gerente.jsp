@@ -14,7 +14,7 @@
 </head>
 <body>
 
-    <div class="app-container">
+    <div class="app-container container">
         
         <div class="header-title container-md">
             Reclamações
@@ -123,7 +123,7 @@
                     const recDataString = encodeURIComponent(JSON.stringify(rec));
 
                     const cardHtml = `
-                        <div class="reclamacao-card">
+                        <div class="patio-card">
                             <div>
                                 <strong class="d-block">`+ rec.data +`</strong>
                                 <span class="badge-status `+ classeCor +`">`+ rec.status +`</span>

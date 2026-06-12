@@ -14,7 +14,7 @@
 </head>
 <body>
 
-    <div class="app-container">
+    <div class="app-container container">
         
         <div class="header-title container-md" id="titulo-data">
             Reservas - 23/04/2026

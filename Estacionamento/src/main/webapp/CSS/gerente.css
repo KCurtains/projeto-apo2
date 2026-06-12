@@ -1,6 +1,7 @@
 @charset "UTF-8";
 
-.report-card, 
+.report-card,
+.reclamacao-card, 
 .patio-card {
     background-color: #f8f9fa;
     border: 1px solid #e9ecef;
@@ -21,7 +22,8 @@
     color: #000;
 }
 
-.report-card .btn, 
+.report-card .btn,
+.reclamacao-card .btn,  
 .patio-card .btn, 
 .btn-cloud {
     padding: 8px 14px !important;
@@ -100,3 +102,37 @@
     border: none; 
 }
 .btn-red:hover { background-color: #bb2d3b; color: white; }
+
+/* Estilização para as suas classes personalizadas */
+.status-analise {
+    background-color: #ffc107 !important; /* Amarelo Bootstrap */
+    color: #212529 !important;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    display: inline-block;
+    margin-top: 5px;
+}
+
+.status-resolvido {
+    background-color: #198754 !important; /* Verde */
+    color: #ffffff !important;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    display: inline-block;
+    margin-top: 5px;
+}
+
+.status-nao-resolvido {
+    background-color: #dc3545 !important; /* Vermelho */
+    color: #ffffff !important;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    display: inline-block;
+    margin-top: 5px;
+}

@@ -13,7 +13,7 @@
 </head>
 <body>
 
-    <div class="app-container">
+    <div class="app-container container">
         
         <div class="header-title">
             Reclamações
@@ -135,7 +135,7 @@
 
                 reclamacoes.forEach(rec => {
                     const cardHtml = `
-                        <div class="reclamacao-card">
+                        <div class="patio-card">
                             <div>
                                 <strong class="d-block">`+ rec.data +`</strong>
                                 <span class="badge-analise">`+ rec.status +`</span>
