@@ -5,6 +5,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 import model.Veiculo;
+import model.Cliente;
 import util.dbConnection;
 
 public class VeiculoDao {
@@ -64,5 +65,22 @@ public class VeiculoDao {
 	            throw new RuntimeException("Erro ao adicionar veículo: " + e.getMessage(), e);
 	        }
 	}
+	
+	public void adicionaMotorista(Veiculo veiculo, Cliente cliente) {
+		
+		String sql = "{CALL AdicionaMotorista(?,?)}";
+		
+		try (Connection conn = dbConnection.getConnection();
+		         CallableStatement stmt = conn.prepareCall(sql)){
+			
+			stmt.setInt(1, cliente.getId());
+			stmt.setInt(2, veiculo.getId());
+			
+			stmt.execute();
+		}catch (SQLException e) {
+            throw new RuntimeException("Erro ao adicionar motorista: " + e.getMessage(), e);
+        }
+	}
+	
 
 }
