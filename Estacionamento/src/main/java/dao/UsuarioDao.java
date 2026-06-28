@@ -111,7 +111,7 @@ public class UsuarioDao {
     }
 	
 	public void atualizarUsuario(Usuario usuario) {
-		String sql = "{CALL UpdateUsuario(?,?,?,?,?,?)}";
+		String sql = "{CALL UpdateUsuario(?,?,?,?,?,?,?)}";
 		
 		try (Connection conn = dbConnection.getConnection();
 				CallableStatement stmt = conn.prepareCall(sql)){

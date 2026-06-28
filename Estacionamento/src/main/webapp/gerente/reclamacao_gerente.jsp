@@ -158,7 +158,7 @@
             const novoStatus = $('#editRecStatus').val();
 
             $.ajax({
-                url: 'AtualizarReclamacaoServlet', 
+            	url: '../reclamacao?acao=atualizarStatus',
                 type: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify({ id: idRec, status: novoStatus }),

@@ -10,6 +10,10 @@ public class Vaga {
 	public StatusVagaEnum StatusVaga;
 	public Patio Patio;
 	
+	public Vaga() {
+		super();
+	}
+	
 	public Vaga(int id, TipoVagaEnum tipo, StatusVagaEnum statusVaga, model.Patio patio) {
 		super();
 		Id = id;

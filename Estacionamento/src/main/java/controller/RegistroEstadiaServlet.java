@@ -1,5 +1,6 @@
 package controller;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -7,26 +8,198 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import dao.RegistroEstadiaDao;
+import model.RegistroEstadia;
+import model.Reserva;
 
-@WebServlet("/estadia")
+@WebServlet("/estadia") // Rota unificada seguindo o padrão do projeto
 public class RegistroEstadiaServlet extends HttpServlet {
-	private static final long serialVersionUID = 1L;
-       
+    private static final long serialVersionUID = 1L;
+    private RegistroEstadiaDao estadiaDao = new RegistroEstadiaDao();
 
     public RegistroEstadiaServlet() {
         super();
-
     }
 
+    protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+        res.getWriter().append("Served at: ").append(req.getContextPath());
+    }
 
-	protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+        res.setContentType("application/json");
+        res.setCharacterEncoding("UTF-8");
 
-		res.getWriter().append("Served at: ").append(req.getContextPath());
-	}
+        String acao = req.getParameter("acao");
 
-	protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+        if (acao == null) {
+            res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            res.getWriter().write("{\"sucesso\": false, \"mensagem\": \"Ação não informada.\"}");
+            return;
+        }
 
-		doGet(req, res);
-	}
+        try {
+            switch (acao) {
+                case "validarEntrada":
+                    executarValidarEntrada(req, res);
+                    break;
+                    
+                case "registrarSaida":
+                    executarRegistrarSaida(req, res);
+                    break;
+                    
+                case "calcularHoras":
+                    executarCalcularHoras(req, res);
+                    break;
+                    
+                case "processarPagamento":
+                    executarProcessarPagamento(req, res);
+                    break;
 
+                default:
+                    res.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                    res.getWriter().write("{\"sucesso\": false, \"mensagem\": \"Ação desconhecida.\"}");
+                    break;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            res.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            res.getWriter().write("{\"sucesso\": false, \"mensagem\": \"Erro interno no servidor.\"}");
+        }
+    }
+
+    // 📥 1. Validar Entrada do veículo usando o ID da Reserva
+    private void executarValidarEntrada(HttpServletRequest req, HttpServletResponse res) throws IOException {
+        String jsonBody = lerCorpoRequisicao(req);
+        String reservaIdStr = extrairCampoJson(jsonBody, "reservaId");
+
+        if (reservaIdStr.isEmpty()) {
+            res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            res.getWriter().write("{\"sucesso\": false, \"mensagem\": \"ID da reserva é obrigatório para entrada.\"}");
+            return;
+        }
+
+        int reservaId = Integer.parseInt(reservaIdStr);
+
+        // Instancia as dependências necessárias da model
+        Reserva reserva = new Reserva();
+        reserva.setId(reservaId); // Certifique-se de que sua model Reserva possui setId(int)
+
+        RegistroEstadia estadia = new RegistroEstadia();
+        estadia.setReserva(reserva);
+
+        // Executa a procedure {CALL ValidarEntrada(?)}
+        estadiaDao.validarEntrada(estadia);
+
+        res.setStatus(HttpServletResponse.SC_OK);
+        res.getWriter().write("{\"sucesso\": true, \"mensagem\": \"Entrada do veículo validada com sucesso!\"}");
+    }
+
+    // 📤 2. Registrar Saída do veículo usando o ID da Estadia
+    private void executarRegistrarSaida(HttpServletRequest req, HttpServletResponse res) throws IOException {
+        String jsonBody = lerCorpoRequisicao(req);
+        String estadiaIdStr = extrairCampoJson(jsonBody, "id"); // Captura o ID enviado pelo AJAX
+
+        if (estadiaIdStr.isEmpty()) {
+            res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            res.getWriter().write("{\"sucesso\": false, \"mensagem\": \"ID da estadia é obrigatório para saída.\"}");
+            return;
+        }
+
+        int estadiaId = Integer.parseInt(estadiaIdStr);
+
+        RegistroEstadia estadia = new RegistroEstadia();
+        estadia.setId(estadiaId);
+
+        // Executa a procedure {CALL RegistrarSaida(?)}
+        estadiaDao.registrarSaida(estadia);
+
+        res.setStatus(HttpServletResponse.SC_OK);
+        res.getWriter().write("{\"sucesso\": true, \"mensagem\": \"Saída registrada com sucesso!\"}");
+    }
+
+    // ⏱️ 3. Consultar tempo de permanência acumulado
+    private void executarCalcularHoras(HttpServletRequest req, HttpServletResponse res) throws IOException {
+        String jsonBody = lerCorpoRequisicao(req);
+        String estadiaIdStr = extrairCampoJson(jsonBody, "id");
+
+        if (estadiaIdStr.isEmpty()) {
+            res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            res.getWriter().write("{\"sucesso\": false, \"mensagem\": \"ID da estadia é obrigatório.\"}");
+            return;
+        }
+
+        int estadiaId = Integer.parseInt(estadiaIdStr);
+        RegistroEstadia estadia = new RegistroEstadia();
+        estadia.setId(estadiaId);
+
+        // Executa a procedure com parâmetro OUT
+        double horas = estadiaDao.calcularHoras(estadia);
+
+        res.setStatus(HttpServletResponse.SC_OK);
+        res.getWriter().write("{\"sucesso\": true, \"totalHoras\": " + horas + "}");
+    }
+
+    // 💳 4. Concluir processamento financeiro
+    private void executarProcessarPagamento(HttpServletRequest req, HttpServletResponse res) throws IOException {
+        String jsonBody = lerCorpoRequisicao(req);
+        String reservaIdStr = extrairCampoJson(jsonBody, "reservaId");
+
+        if (reservaIdStr.isEmpty()) {
+            res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            res.getWriter().write("{\"sucesso\": false, \"mensagem\": \"ID da reserva é obrigatório para o pagamento.\"}");
+            return;
+        }
+
+        int reservaId = Integer.parseInt(reservaIdStr);
+
+        Reserva reserva = new Reserva();
+        reserva.setId(reservaId);
+
+        RegistroEstadia estadia = new RegistroEstadia();
+        estadia.setReserva(reserva);
+
+        // Executa a procedure {CALL ProcessarPagamento(?)}
+        estadiaDao.processarPagamento(estadia);
+
+        res.setStatus(HttpServletResponse.SC_OK);
+        res.getWriter().write("{\"sucesso\": true, \"mensagem\": \"Pagamento processado com sucesso!\"}");
+    }
+
+    private String lerCorpoRequisicao(HttpServletRequest req) throws IOException {
+        BufferedReader reader = req.getReader();
+        StringBuilder sb = new StringBuilder();
+        String linha;
+        while ((linha = reader.readLine()) != null) {
+            sb.append(linha);
+        }
+        return sb.toString();
+    }
+
+    private String extrairCampoJson(String json, String campo) {
+        try {
+            String chave = "\"" + campo + "\"";
+            if (!json.contains(chave)) return "";
+            int inicio = json.indexOf(chave) + chave.length();
+            
+            // Suporta formatos estruturados com dois pontos ':' comuns em envios JSON
+            if (json.charAt(inicio) == ':') {
+                inicio++;
+            }
+            
+            inicio = json.indexOf("\"", inicio) + 1;
+            
+            // Fallback caso o número seja enviado direto sem aspas no JSON numérico
+            if (inicio == 0) {
+                int indexDoisPontos = json.indexOf(":", json.indexOf(chave)) + 1;
+                int fimNum = json.indexOf(",", indexDoisPontos);
+                if (fimNum == -1) fimNum = json.indexOf("}", indexDoisPontos);
+                return json.substring(indexDoisPontos, fimNum).trim();
+            }
+            
+            int fim = json.indexOf("\"", inicio);
+            return json.substring(inicio, fim);
+        } catch (Exception e) {
+            return "";
+        }
+    }
 }

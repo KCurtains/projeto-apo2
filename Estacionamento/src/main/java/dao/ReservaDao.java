@@ -17,11 +17,11 @@ public class ReservaDao {
 	             CallableStatement stmt = conn.prepareCall(sql)) {
 
 			stmt.setObject(1, reserva.getHorarioEntrada());
-			stmt.setObject(1, reserva.getHorarioSaida());
-			stmt.setFloat(1, reserva.getValor());
-			stmt.setObject(1, reserva.getVeiculo().getId());
-			stmt.setObject(1, reserva.getPatio().getId());
-			stmt.setObject(1, reserva.getVaga().getId());
+			stmt.setObject(2, reserva.getHorarioSaida());
+			stmt.setFloat(3, reserva.getValor());
+			stmt.setObject(4, reserva.getVeiculo().getId());
+			stmt.setObject(5, reserva.getPatio().getId());
+			stmt.setObject(6, reserva.getVaga().getId());
 
 	            stmt.execute();
 	        } catch (SQLException e) {

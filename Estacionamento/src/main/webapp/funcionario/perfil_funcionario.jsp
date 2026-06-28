@@ -133,7 +133,7 @@
             }
 
             $.ajax({
-                url: 'AtualizarPerfilServlet',
+            	url: '../funcionario?acao=atualizarSimples',
                 type: 'POST',
                 data: JSON.stringify({ campo: campo, valor: novoValor }),
                 contentType: 'application/json',
@@ -165,7 +165,7 @@
             }
 
             $.ajax({
-                url: 'AtualizarPerfilCredenciaisServlet',
+            	url: '../funcionario?acao=atualizarComplexo',
                 type: 'POST',
                 data: JSON.stringify({ 
                     tipo: campo, 

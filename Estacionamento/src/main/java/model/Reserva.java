@@ -15,6 +15,11 @@ public class Reserva {
 	public Veiculo Veiculo;
 	public Vaga Vaga;
 	
+	public Reserva() {
+		super();
+
+	}
+	
 	public Reserva(int id, LocalDateTime horarioEntrada, LocalDateTime horarioSaida, Float valor,
 			StatusReservaEnum statusReserva, model.Patio patio, model.Veiculo veiculo, model.Vaga vaga) {
 		super();

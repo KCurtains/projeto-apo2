@@ -13,6 +13,10 @@ public class Veiculo {
 	public TipoVeiculoEnum TipoVeiculo;
 	
 	public List<Cliente> MotoristasAutorizados;
+	
+	public Veiculo() {
+		super();
+	}
 
 	public Veiculo(int id, String placa, String modelo, String cor, Cliente motoristaPrincipal,
 			TipoVeiculoEnum tipoVeiculo, List<Cliente> motoristasAutorizados) {

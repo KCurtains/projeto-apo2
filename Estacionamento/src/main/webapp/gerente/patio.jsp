@@ -10,7 +10,6 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../CSS/global.css">
     <link rel="stylesheet" href="../CSS/gerente.css">
-
 </head>
 <body>
 
@@ -21,14 +20,10 @@
         </div>
 
         <div class="content-area container-md">
-            
             <div id="empty-state" class="text-center text-muted mt-5 d-none">
                 <p>Nenhum pátio cadastrado.</p>
             </div>
-
-            <div id="list-state">
-                </div>
-
+            <div id="list-state"></div>
         </div>
 
         <div class="fab" onclick="abrirModalAddPatio()">+</div>
@@ -54,9 +49,6 @@
                         <label class="small text-muted mb-1">Endereço / Nome do Pátio</label>
                         <input type="text" class="form-control" id="addPatioNome" required>
                         
-                        <label class="small text-muted mb-1">Vagas Totais</label>
-                        <input type="number" class="form-control" id="addPatioVagasTotais" required>
-                        
                         <label class="small text-muted mb-1">Vagas de Carro</label>
                         <input type="number" class="form-control" id="addPatioVagasCarro" required>
                         
@@ -65,9 +57,6 @@
                         
                         <label class="small text-muted mb-1">Vagas de Caminhão</label>
                         <input type="number" class="form-control" id="addPatioVagasCaminhao" required>
-                        
-                        <label class="small text-muted mb-1">Vagas para Mensalistas</label>
-                        <input type="number" class="form-control" id="addPatioVagasMensalistas" required>
                     </form>
                 </div>
                 <div class="modal-footer pb-4 pt-2">
@@ -91,9 +80,6 @@
                         <label class="small text-muted mb-1">Endereço / Nome do Pátio</label>
                         <input type="text" class="form-control" id="editPatioNome" readonly>
                         
-                        <label class="small text-muted mb-1">Vagas Totais</label>
-                        <input type="number" class="form-control" id="editPatioVagasTotais" required>
-                        
                         <label class="small text-muted mb-1">Vagas de Carro</label>
                         <input type="number" class="form-control" id="editPatioVagasCarro" required>
                         
@@ -102,13 +88,10 @@
                         
                         <label class="small text-muted mb-1">Vagas de Caminhão</label>
                         <input type="number" class="form-control" id="editPatioVagasCaminhao" required>
-                        
-                        <label class="small text-muted mb-1">Vagas para Mensalistas</label>
-                        <input type="number" class="form-control" id="editPatioVagasMensalistas" required>
                     </form>
                 </div>
                 <div class="modal-footer flex-column pb-4 gap-2 pt-2">
-                    <button type="button" class="btn btn-orange" onclick="atualizarPatio()">Salvar</button>
+                    <button type="button" class="btn btn-orange" onclick="atualizarPatio()">Salvar Alterações</button>
                     <button type="button" class="btn btn-red" onclick="removerPatio()">Remover Pátio</button>
                 </div>
             </div>
@@ -124,12 +107,10 @@
                 </div>
                 <div class="modal-body pb-4">
                     <div class="mb-2"><small class="text-muted d-block">Nome / Endereço</small><strong id="infoNome"></strong></div>
-                    <div class="mb-2"><small class="text-muted d-block">Vagas Totais</small><strong id="infoTotais"></strong></div>
                     <div class="row">
-                        <div class="col-6 mb-2"><small class="text-muted d-block">Carros</small><strong id="infoCarros"></strong></div>
-                        <div class="col-6 mb-2"><small class="text-muted d-block">Motos</small><strong id="infoMotos"></strong></div>
-                        <div class="col-6 mb-2"><small class="text-muted d-block">Caminhões</small><strong id="infoCaminhoes"></strong></div>
-                        <div class="col-6 mb-2"><small class="text-muted d-block">Mensalistas</small><strong id="infoMensalistas"></strong></div>
+                        <div class="col-4 mb-2"><small class="text-muted d-block">Carros</small><strong id="infoCarros"></strong></div>
+                        <div class="col-4 mb-2"><small class="text-muted d-block">Motos</small><strong id="infoMotos"></strong></div>
+                        <div class="col-4 mb-2"><small class="text-muted d-block">Caminhões</small><strong id="infoCaminhoes"></strong></div>
                     </div>
                 </div>
             </div>
@@ -145,15 +126,14 @@
         });
 
         function carregarPatios() {
+            // Mocks iniciais para exibição em tela
             const patiosMock = [
                 { 
                     id: 1, 
                     nome: "Rua cinco, 123 - SP", 
-                    vagasTotais: 80,
                     vagasCarro: 50,
                     vagasMoto: 20,
-                    vagasCaminhao: 10,
-                    vagasMensalistas: 15
+                    vagasCaminhao: 10
                 }
             ];
             
@@ -170,14 +150,15 @@
                 patiosMock.forEach(patio => {
                     const patioData = encodeURIComponent(JSON.stringify(patio));
 
+                    // Atualizado para usar a classe universal 'item-card'
                     const cardHtml = `
-                        <div class="patio-card">
-                            <div class="patio-name">`+ patio.nome +`</div>
+                        <div class="item-card">
+                            <div class="item-card-text"><strong>`+ patio.nome +`</strong></div>
                             <div>
-                                <button class="btn btn-icon-orange rounded-3 me-1" onclick="abrirModalInfo('`+ patioData +`')">
+                                <button class="btn btn-icon-orange btn-sm rounded-3 me-1" onclick="abrirModalInfo('`+ patioData +`')">
                                     <i class="bi bi-info-circle"></i>
                                 </button>
-                                <button class="btn btn-icon-orange rounded-3" onclick="abrirModalEdit('`+ patioData +`')">
+                                <button class="btn btn-icon-orange btn-sm rounded-3" onclick="abrirModalEdit('`+ patioData +`')">
                                     <i class="bi bi-pencil-square"></i>
                                 </button>
                             </div>
@@ -190,14 +171,33 @@
 
         function abrirModalAddPatio() {
             $('#form-add-patio')[0].reset();
-            var myModal = new bootstrap.Modal(document.getElementById('modalAddPatio'));
-            myModal.show();
+            new bootstrap.Modal(document.getElementById('modalAddPatio')).show();
         }
 
+        // DISPARA AJAX DE ADIÇÃO (POST)
         function salvarNovoPatio() {
-            alert("Novo pátio adicionado com sucesso!");
-            $('#modalAddPatio').modal('hide');
-            carregarPatios();
+            const dadosPatio = {
+                capacidadeCarro: $('#addPatioVagasCarro').val(),
+                capacidadeMoto: $('#addPatioVagasMoto').val(),
+                capacidadeCaminhao: $('#addPatioVagasCaminhao').val()
+            };
+
+            $.ajax({
+                url: '../patio?acao=adicionar',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(dadosPatio),
+                dataType: 'json',
+                success: function(response) {
+                    alert(response.mensagem);
+                    $('#modalAddPatio').modal('hide');
+                    carregarPatios();
+                },
+                error: function() {
+                    alert("Simulação: POST disparado para adicionar pátio.");
+                    $('#modalAddPatio').modal('hide');
+                }
+            });
         }
 
         function abrirModalEdit(patioDataEncoded) {
@@ -205,28 +205,60 @@
 
             $('#editPatioId').val(patio.id);
             $('#editPatioNome').val(patio.nome);
-            $('#editPatioVagasTotais').val(patio.vagasTotais);
             $('#editPatioVagasCarro').val(patio.vagasCarro);
             $('#editPatioVagasMoto').val(patio.vagasMoto);
             $('#editPatioVagasCaminhao').val(patio.vagasCaminhao);
-            $('#editPatioVagasMensalistas').val(patio.vagasMensalistas);
 
-            var myModal = new bootstrap.Modal(document.getElementById('modalEditPatio'));
-            myModal.show();
+            new bootstrap.Modal(document.getElementById('modalEditPatio')).show();
         }
 
+        // DISPARA AJAX DE ATUALIZAÇÃO (POST)
         function atualizarPatio() {
-            alert("Pátio atualizado com sucesso!");
-            $('#modalEditPatio').modal('hide');
-            carregarPatios();
+            const dadosPatio = {
+                id: $('#editPatioId').val(),
+                capacidadeCarro: $('#editPatioVagasCarro').val(),
+                capacidadeMoto: $('#editPatioVagasMoto').val(),
+                capacidadeCaminhao: $('#editPatioVagasCaminhao').val()
+            };
+
+            $.ajax({
+                url: '../patio?acao=atualizar',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(dadosPatio),
+                dataType: 'json',
+                success: function(response) {
+                    alert(response.mensagem);
+                    $('#modalEditPatio').modal('hide');
+                    carregarPatios();
+                },
+                error: function() {
+                    alert("Simulação: POST disparado para atualizar pátio.");
+                    $('#modalEditPatio').modal('hide');
+                }
+            });
         }
 
+        // DISPARA AJAX DE REMOÇÃO (POST)
         function removerPatio() {
-            const id = $('#editPatioId').val();
+            const idPatio = $('#editPatioId').val();
             if(confirm("ATENÇÃO: Deseja realmente remover este pátio?")) {
-                alert("Pátio removido com sucesso!");
-                $('#modalEditPatio').modal('hide');
-                carregarPatios();
+                $.ajax({
+                    url: '../patio?acao=remover',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ id: idPatio }),
+                    dataType: 'json',
+                    success: function(response) {
+                        alert(response.mensagem);
+                        $('#modalEditPatio').modal('hide');
+                        carregarPatios();
+                    },
+                    error: function() {
+                        alert("Simulação: Pátio ID " + idPatio + " removido.");
+                        $('#modalEditPatio').modal('hide');
+                    }
+                });
             }
         }
 
@@ -234,14 +266,11 @@
             const patio = JSON.parse(decodeURIComponent(patioDataEncoded));
 
             $('#infoNome').text(patio.nome);
-            $('#infoTotais').text(patio.vagasTotais);
             $('#infoCarros').text(patio.vagasCarro);
             $('#infoMotos').text(patio.vagasMoto);
             $('#infoCaminhoes').text(patio.vagasCaminhao);
-            $('#infoMensalistas').text(patio.vagasMensalistas);
 
-            var myModal = new bootstrap.Modal(document.getElementById('modalInfoPatio'));
-            myModal.show();
+            new bootstrap.Modal(document.getElementById('modalInfoPatio')).show();
         }
     </script>
 </body>

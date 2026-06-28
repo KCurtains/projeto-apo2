@@ -229,50 +229,77 @@
                 senha: $('#loginSenha').val()
             };
 
+            if (!dadosLogin.email || !dadosLogin.senha) {
+                alert("Por favor, preencha todos os campos.");
+                return;
+            }
+
             $.ajax({
                 url: 'LoginServlet',
                 type: 'POST',
                 contentType: 'application/json',
-                data: JSON.stringify(dadosLogin),
+                data: JSON.stringify(dadosLogin), 
                 dataType: 'json',
                 success: function(response) {
-                    alert("Login realizado com sucesso!");
-                    // window.location.href = "dashboard.jsp";
+                    if (response.sucesso) {
+                        window.location.href = response.redirecionar;
+                    } else {
+                        alert(response.mensagem);
+                    }
                 },
-                error: function() {
-                    alert("Simulação de login. Redirecione para 'dashboard.jsp' ao conectar o backend.");
+                error: function(err) {
+
+                    if (err.responseJSON && err.responseJSON.mensagem) {
+                        alert(err.responseJSON.mensagem);
+                    } else {
+                        alert("Erro ao tentar realizar o login. Verifique os dados.");
+                    }
                 }
             });
         }
 
         function finalizarCadastro() {
-            const dadosUsuario = {
+
+            const novoUsuario = {
                 nome: $('#cadNome').val(),
                 cpf: $('#cadCpf').val(),
                 email: $('#cadEmail').val(),
                 telefone: $('#cadNumero').val(),
-                veiculo: {
-                    modelo: $('#cadModelo').val(),
-                    ano: $('#cadAno').val(),
-                    cor: $('#cadCor').val(),
-                    placa: $('#cadPlaca').val()
-                },
-                senha: $('#cadSenha').val()
+                senha: $('#cadSenha').val(),
+
+                sexo: "MASCULINO", 
+                dataNascimento: "2000-01-01" 
             };
 
+            // Validação simples antes de mandar para o servidor
+            if (!novoUsuario.nome || !novoUsuario.cpf || !novoUsuario.email || !novoUsuario.senha) {
+                alert("Por favor, preencha os campos obrigatórios do cadastro.");
+                return;
+            }
+
+            // Se as senhas não baterem, interrompe o envio
+            if (novoUsuario.senha !== $('#cadConfirmaSenha').val()) {
+                alert("As senhas informadas não coincidem!");
+                return;
+            }
+
+            // 2. O AJAX envia essa constante "novoUsuario" convertida em texto para o Servlet
             $.ajax({
-                url: 'CadastroServlet',
+                url: 'usuario?acao=cadastrar', 
                 type: 'POST',
                 contentType: 'application/json',
-                data: JSON.stringify(dadosUsuario),
+                data: JSON.stringify(novoUsuario), 
                 dataType: 'json',
                 success: function(response) {
-                    alert("Cadastro finalizado com sucesso!");
-                    changeView('view-login');
+                    alert(response.mensagem);
+                    changeView('view-login'); 
                 },
-                error: function() {
-                    alert("Simulação de cadastro finalizada. Dados prontos para envio.");
-                    changeView('view-login');
+                error: function(err) {
+                    if (err.responseJSON && err.responseJSON.mensagem) {
+                        alert(err.responseJSON.mensagem);
+                    } else {
+                        alert("Erro ao realizar o cadastro no servidor.");
+                    }
                 }
             });
         }

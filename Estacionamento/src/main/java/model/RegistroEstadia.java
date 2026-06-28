@@ -9,6 +9,9 @@ public class RegistroEstadia {
 	public LocalDateTime HorarioSaidaReal;
 	public Reserva Reserva;
 	
+	public RegistroEstadia() {
+        super();
+    }
 	public RegistroEstadia(int id, LocalDateTime horarioEntradaReal, LocalDateTime horarioSaidaReal,
 			model.Reserva reserva) {
 		super();

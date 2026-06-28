@@ -177,7 +177,7 @@
             }
 
             $.ajax({
-                url: 'CriarReclamacaoServlet', 
+            	url: '../reclamacao?acao=adicionar',
                 type: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify(dadosReclamacao),
