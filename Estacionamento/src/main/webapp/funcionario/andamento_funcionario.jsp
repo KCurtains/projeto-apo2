@@ -10,7 +10,6 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../CSS/global.css">
     <link rel="stylesheet" href="../CSS/funcionario.css">
-
 </head>
 <body>
 
@@ -21,14 +20,10 @@
         </div>
 
         <div class="content-area container-md">
-            
             <div id="empty-state" class="text-center text-muted mt-5 d-none">
                 <p>Não há veículos no pátio no momento.</p>
             </div>
-
-            <div id="list-state">
-                </div>
-
+            <div id="list-state"></div>
         </div>
 
         <div class="bottom-nav">
@@ -71,8 +66,9 @@
                         <strong id="infoValor"></strong>
                     </div>
                 </div>
-                <div class="modal-footer pb-4">
-                    <button type="button" class="btn btn-orange" onclick="registrarSaida()">Registrar Saída</button>
+                <div class="modal-footer flex-column pb-4 gap-2">
+                    <button type="button" class="btn btn-orange w-100" onclick="registrarSaida()">Registrar Saída</button>
+                    <button type="button" class="btn btn-red w-100" onclick="aplicarMultaManual()">Aplicar Multa por Infração</button>
                 </div>
             </div>
         </div>
@@ -110,9 +106,10 @@
                 $('#list-state').removeClass('d-none');
 
                 estadiasMock.forEach(estadia => {
+                    // Usando as classes padronizadas 'item-card' para o design não quebrar no PC
                     const cardHtml = `
-                        <div class="estadia-card d-flex justify-content-between align-items-center">
-                            <div>
+                        <div class="item-card">
+                            <div class="item-card-text">
                                 <small class="text-muted d-block">`+ estadia.veiculo.split(' (')[0] +`</small>
                                 <strong>`+ estadia.data +`</strong>
                             </div>
@@ -145,7 +142,7 @@
             const idEstadia = $('#infoEstadiaId').val();
 
             $.ajax({
-                url: 'RegistrarSaidaServlet',
+            	url: '../estadia?acao=registrarSaida',
                 type: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify({ id: idEstadia, acao: 'registrar_saida' }),
@@ -158,6 +155,37 @@
                 error: function() {
                     alert("Simulação: Saída registrada para a estadia ID: " + idEstadia);
                     $('#modalInfoEstadia').modal('hide');
+                }
+            });
+        }
+
+        // DISPARA O AJAX PARA O SEU NOVO MULTASERVLET
+        function aplicarMultaManual() {
+            const idEstadia = $('#infoEstadiaId').val();
+            const motivoDigitado = prompt("Digite o motivo da multa (ex: Perda de ticket, Vaga dupla):");
+            
+            if (!motivoDigitado) return;
+            
+            const valorDigitado = prompt("Digite o valor da multa (ex: 50.00):");
+            if (!valorDigitado) return;
+
+            const dadosMulta = {
+                valor: valorDigitado,
+                motivo: motivoDigitado,
+                estadiaId: idEstadia
+            };
+
+            $.ajax({
+                url: '../multa?acao=adicionar',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(dadosMulta),
+                dataType: 'json',
+                success: function(response) {
+                    alert(response.mensagem);
+                },
+                error: function() {
+                    alert("Simulação: Multa de R$ " + valorDigitado + " associada à estadia " + idEstadia);
                 }
             });
         }

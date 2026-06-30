@@ -133,15 +133,13 @@
                 return;
             }
 
-            // Exemplo de requisição AJAX GET
-            /*
             $.ajax({
                 url: 'PesquisarClienteServlet?termo=' + termo,
                 type: 'GET',
                 dataType: 'json',
                 success: function(clientes) { renderizarResultados(clientes); }
             });
-            */
+
 
             // Mock simulando o retorno do banco
             const resultadosMock = [
