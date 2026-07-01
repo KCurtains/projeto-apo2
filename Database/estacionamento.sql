@@ -127,6 +127,22 @@ CREATE TABLE RelatorioMensal(
     MultasAplicadas INT NOT NULL
 );
 
+CREATE TABLE ValidacaoToken (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    cliente_id INT NOT NULL,
+    token VARCHAR(255) NOT NULL UNIQUE,
+    data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    data_expiracao TIMESTAMP NOT NULL,
+    utilizado BOOLEAN DEFAULT FALSE,
+
+    CONSTRAINT fk_validacao_cliente
+        FOREIGN KEY (cliente_id)
+        REFERENCES cliente(cliente_id)
+        ON DELETE CASCADE
+);
+ALTER TABLE cliente
+ADD email_verificado BOOLEAN DEFAULT FALSE;
+
 -- PROCEDURES - RELATÓRIOS E CONSULTAS GERAIS
 
 DELIMITER //
