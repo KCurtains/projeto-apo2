@@ -115,11 +115,23 @@
         });
 
         function carregarReclamacoes() {
-            const reclamacoesMock = [
-                { id: 1, data: "23/04/2026", status: "Em Análise" }
-            ];
-            
-            renderizarListaReclamacoes(reclamacoesMock); 
+            // Supondo que você queira buscar as reclamações da estadia de ID 1 (você pode deixar isso dinâmico depois)
+            const idEstadia = 1; 
+
+            $.ajax({
+                url: '../reclamacao?idEstadia=' + idEstadia,
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    // O Servlet devolve diretamente a lista em JSON
+                    renderizarListaReclamacoes(response);
+                },
+                error: function(xhr) {
+                    console.error("Erro ao buscar as reclamações:", xhr.responseText);
+                    $('#empty-state-reclamacoes').removeClass('d-none');
+                    $('#list-state-reclamacoes').addClass('d-none');
+                }
+            });
         }
 
         function renderizarListaReclamacoes(reclamacoes) {

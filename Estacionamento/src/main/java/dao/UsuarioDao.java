@@ -29,7 +29,7 @@ public class UsuarioDao {
 			stmt.setObject(4, usuario.getDataNascimento());
 			stmt.setString(5, usuario.getEmail());
 			stmt.setString(6, usuario.getTelefone());
-			stmt.setString(7, usuario.getSenha());
+			stmt.setString(7, gerarHash(usuario.getSenha()));
 			
 			
 			stmt.execute();
@@ -122,7 +122,7 @@ public class UsuarioDao {
 				stmt.setObject(4, usuario.getDataNascimento());
 				stmt.setString(5, usuario.getEmail());
 				stmt.setString(6, usuario.getTelefone());
-				stmt.setString(7, usuario.getSenha());
+				stmt.setString(7, gerarHash(usuario.getSenha()));
 				
 				
 				stmt.execute();

@@ -2,8 +2,13 @@ package dao;
 
 import java.sql.CallableStatement;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
+import Enum.TipoVeiculoEnum;
 import model.Veiculo;
 import util.dbConnection;
 
@@ -64,5 +69,27 @@ public class VeiculoDao {
 	            throw new RuntimeException("Erro ao adicionar veículo: " + e.getMessage(), e);
 	        }
 	}
+	
+	public List<Veiculo> listarPorCliente(int idCliente) throws SQLException {
+        List<Veiculo> lista = new ArrayList<>();
+        String sql = "SELECT * FROM Veiculo WHERE MotoristaPrincipal = ?";
+        try (Connection conn = dbConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, idCliente);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Veiculo v = new Veiculo();
+                    v.setId(rs.getInt("Id"));
+                    v.setPlaca(rs.getString("Placa"));
+                    v.setModelo(rs.getString("Modelo"));
+                    v.setCor(rs.getString("Cor"));
+                    v.setMotoristaPrincipal(rs.getObject("MotoristaPrincipal"));
+                    v.setTipoVeiculo(TipoVeiculoEnum.valueOf(rs.getString("TipoVeiculo")));
+                    lista.add(v);
+                }
+            }
+        }
+        return lista;
+    }
 
 }

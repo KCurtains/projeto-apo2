@@ -126,61 +126,61 @@
         });
 
         function carregarPatios() {
-            // Mocks iniciais para exibição em tela
-            const patiosMock = [
-                { 
-                    id: 1, 
-                    nome: "Rua cinco, 123 - SP", 
-                    vagasCarro: 50,
-                    vagasMoto: 20,
-                    vagasCaminhao: 10
-                }
-            ];
-            
             const listDiv = $('#list-state');
-            listDiv.empty();
+            
+            $.ajax({
+                url: '../patio?acao=listar',
+                type: 'GET',
+                dataType: 'json',
+                success: function(patios) {
+                    listDiv.empty();
+                    
+                    if(patios.length === 0) {
+                        $('#empty-state').removeClass('d-none');
+                        $('#list-state').addClass('d-none');
+                    } else {
+                        $('#empty-state').addClass('d-none');
+                        $('#list-state').removeClass('d-none');
 
-            if(patiosMock.length === 0) {
-                $('#empty-state').removeClass('d-none');
-                $('#list-state').addClass('d-none');
-            } else {
-                $('#empty-state').addClass('d-none');
-                $('#list-state').removeClass('d-none');
+                        patios.forEach(patio => {
+                            const patioData = encodeURIComponent(JSON.stringify(patio));
 
-                patiosMock.forEach(patio => {
-                    const patioData = encodeURIComponent(JSON.stringify(patio));
-
-                    // Atualizado para usar a classe universal 'item-card'
-                    const cardHtml = `
-                        <div class="item-card">
-                            <div class="item-card-text"><strong>`+ patio.nome +`</strong></div>
-                            <div>
-                                <button class="btn btn-icon-orange btn-sm rounded-3 me-1" onclick="abrirModalInfo('`+ patioData +`')">
-                                    <i class="bi bi-info-circle"></i>
-                                </button>
-                                <button class="btn btn-icon-orange btn-sm rounded-3" onclick="abrirModalEdit('`+ patioData +`')">
-                                    <i class="bi bi-pencil-square"></i>
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                    listDiv.append(cardHtml);
-                });
-            }
+                            const cardHtml = `
+                                <div class="item-card">
+                                    <div class="item-card-text"><strong>`+ patio.nome +`</strong></div>
+                                    <div>
+                                        <button class="btn btn-icon-orange btn-sm rounded-3 me-1" onclick="abrirModalInfo('`+ patioData +`')">
+                                            <i class="bi bi-info-circle"></i>
+                                        </button>
+                                        <button class="btn btn-icon-orange btn-sm rounded-3" onclick="abrirModalEdit('`+ patioData +`')">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                            listDiv.append(cardHtml);
+                        });
+                    }
+                },
+                error: function() {
+                    alert("Erro: Não foi possível carregar os pátios do servidor.");
+                }
+            });
         }
-
+        
         function abrirModalAddPatio() {
             $('#form-add-patio')[0].reset();
             new bootstrap.Modal(document.getElementById('modalAddPatio')).show();
         }
 
         // DISPARA AJAX DE ADIÇÃO (POST)
-        function salvarNovoPatio() {
-            const dadosPatio = {
-                capacidadeCarro: $('#addPatioVagasCarro').val(),
-                capacidadeMoto: $('#addPatioVagasMoto').val(),
-                capacidadeCaminhao: $('#addPatioVagasCaminhao').val()
-            };
+		function salvarNovoPatio() {
+		    const dadosPatio = {
+		        endereco: $('#addPatioNome').val(), // <-- Faltava esta linha
+		        capacidadeCarro: $('#addPatioVagasCarro').val(),
+		        capacidadeMoto: $('#addPatioVagasMoto').val(),
+		        capacidadeCaminhao: $('#addPatioVagasCaminhao').val()
+		    };
 
             $.ajax({
                 url: '../patio?acao=adicionar',
@@ -194,7 +194,7 @@
                     carregarPatios();
                 },
                 error: function() {
-                    alert("Simulação: POST disparado para adicionar pátio.");
+                    alert("Erro ao adicionar patio");
                     $('#modalAddPatio').modal('hide');
                 }
             });
@@ -214,12 +214,13 @@
 
         // DISPARA AJAX DE ATUALIZAÇÃO (POST)
         function atualizarPatio() {
-            const dadosPatio = {
-                id: $('#editPatioId').val(),
-                capacidadeCarro: $('#editPatioVagasCarro').val(),
-                capacidadeMoto: $('#editPatioVagasMoto').val(),
-                capacidadeCaminhao: $('#editPatioVagasCaminhao').val()
-            };
+	    	const dadosPatio = {
+	        id: $('#editPatioId').val(),
+	        endereco: $('#editPatioNome').val(), // <-- Faltava esta linha
+	        capacidadeCarro: $('#editPatioVagasCarro').val(),
+	        capacidadeMoto: $('#editPatioVagasMoto').val(),
+	        capacidadeCaminhao: $('#editPatioVagasCaminhao').val()
+    	};
 
             $.ajax({
                 url: '../patio?acao=atualizar',
@@ -244,7 +245,7 @@
             const idPatio = $('#editPatioId').val();
             if(confirm("ATENÇÃO: Deseja realmente remover este pátio?")) {
                 $.ajax({
-                    url: '../patio?acao=remover',
+                    url: '${pageContext.request.contextPath}/patio?acao=remover',
                     type: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify({ id: idPatio }),

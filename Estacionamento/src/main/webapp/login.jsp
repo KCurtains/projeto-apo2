@@ -235,7 +235,7 @@
             }
 
             $.ajax({
-                url: 'LoginServlet',
+                url: '../login',
                 type: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify(dadosLogin), 

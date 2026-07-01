@@ -2,6 +2,8 @@ package controller;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.List;
+
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -23,7 +25,45 @@ public class ReclamacaoServlet extends HttpServlet {
     }
 
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
-        res.getWriter().append("Served at: ").append(req.getContextPath());
+        res.setContentType("application/json");
+        res.setCharacterEncoding("UTF-8");
+
+        // Captura o ID da estadia enviada pelo Front-end
+        String idEstadiaStr = req.getParameter("idEstadia");
+        
+        if (idEstadiaStr == null || idEstadiaStr.isEmpty()) {
+            res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            res.getWriter().write("{\"sucesso\": false, \"mensagem\": \"ID da estadia não informado.\"}");
+            return;
+        }
+
+        try {
+            int idEstadia = Integer.parseInt(idEstadiaStr);
+            List<Reclamacao> reclamacoes = reclamacaoDao.listarReclamacoes(idEstadia);
+            
+            // Construção manual do JSON array
+            StringBuilder json = new StringBuilder("[");
+            for (int i = 0; i < reclamacoes.size(); i++) {
+                Reclamacao r = reclamacoes.get(i);
+                json.append("{")
+                    .append("\"id\": ").append(r.getId()).append(",")
+                    .append("\"texto\": \"").append(r.getConteudo().replace("\"", "\\\"")).append("\",")
+                    .append("\"status\": \"").append(r.getStatusReclamacao().name()).append("\"")
+                    // Se houver uma data, adicione aqui! O BD atual não parece gravar a data da reclamação na tabela[cite: 89].
+                    .append("}");
+                
+                if (i < reclamacoes.size() - 1) json.append(",");
+            }
+            json.append("]");
+
+            res.setStatus(HttpServletResponse.SC_OK);
+            res.getWriter().write(json.toString());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            res.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            res.getWriter().write("{\"sucesso\": false, \"mensagem\": \"Erro interno no servidor.\"}");
+        }
     }
 
     protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {

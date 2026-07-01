@@ -13,7 +13,14 @@ public class dbConnection {
         private static final String USER = "root";
         private static final String PASSWORD = "";
 
+        
         public static Connection getConnection() {
+        	try {
+        	    Class.forName("com.mysql.cj.jdbc.Driver");
+        	    System.out.println("Driver carregado!");
+        	} catch (ClassNotFoundException e) {
+        	    e.printStackTrace();
+        	}
 
             try {
                 return DriverManager.getConnection(

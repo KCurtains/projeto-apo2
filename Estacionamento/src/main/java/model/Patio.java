@@ -3,13 +3,15 @@ package model;
 public class Patio {
 
 	public int Id;
+	public String Endereco;
 	public int CapacidadeCarro;
 	public int CapacidadeMoto;
 	public int CapacidadeCaminhao;
 	
-	public Patio(int id, int capacidadeCarro, int capacidadeMoto, int capacidadeCaminhao) {
+	public Patio(int id, String endereco, int capacidadeCarro, int capacidadeMoto, int capacidadeCaminhao) {
 		super();
 		Id = id;
+		Endereco = endereco;
 		CapacidadeCarro = capacidadeCarro;
 		CapacidadeMoto = capacidadeMoto;
 		CapacidadeCaminhao = capacidadeCaminhao;
@@ -21,6 +23,15 @@ public class Patio {
 	public void setId(int id) {
 		Id = id;
 	}
+	
+	public String getEndereco() {
+		return Endereco;
+	}
+
+	public void setEndereco(String endereco) {
+		Endereco = endereco;
+	}
+
 	public int getCapacidadeCarro() {
 		return CapacidadeCarro;
 	}

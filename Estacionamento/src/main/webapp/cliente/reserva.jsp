@@ -154,8 +154,19 @@
         });
 
         function carregarReservas() {
-            const reservasMock = [{ id: 1, veiculo: "Ford Ka - 2012", data: "23/04/2026", patio: "Rua Cinco, 123", valor: "R$50,00" }];
-            renderizarLista(reservasMock); 
+            $.ajax({
+                url: '../reserva', // Bate no seu doGet
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    renderizarLista(response); // Passa os dados reais para a sua função de renderizar
+                },
+                error: function(xhr) {
+                    console.error("Erro ao buscar as reservas:", xhr.responseText);
+                    $('#empty-state').removeClass('d-none');
+                    $('#list-state').addClass('d-none');
+                }
+            });
         }
 
         function renderizarLista(reservas) {

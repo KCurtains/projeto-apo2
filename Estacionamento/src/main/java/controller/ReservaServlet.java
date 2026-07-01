@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
+
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -26,12 +28,43 @@ public class ReservaServlet extends HttpServlet {
     }
 
     // O doGet pode ser usado para listar as reservas do cliente logado
+ // Substitua o seu doGet atual no ReservaServlet
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
         res.setContentType("application/json");
         res.setCharacterEncoding("UTF-8");
         
-        // Simulação de retorno de listagem limpa (Mock que seu reserva.jsp já possui)
-        res.getWriter().write("[{\"id\": 1, \"veiculo\": \"Ford Ka - 2012\", \"data\": \"23/04/2026\", \"patio\": \"Rua Cinco, 123\", \"valor\": \"R$50,00\"}]");
+        try {
+            // Simulando o ID do cliente logado como "1" até você ter o esquema de Sessões pronto
+            int clienteLogadoId = 1; 
+            List<Reserva> reservas = reservaDao.listarReservasPorCliente(clienteLogadoId);
+
+            StringBuilder json = new StringBuilder("[");
+            // Formatar a data para o padrão do frontend: "23/04/2026"
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+
+            for (int i = 0; i < reservas.size(); i++) {
+                Reserva r = reservas.get(i);
+                json.append("{")
+                    .append("\"id\": ").append(r.getId()).append(",")
+                    // Adaptando para mostrar os IDs enquanto não trazemos o nome via JOIN
+                    .append("\"veiculo\": \"Veículo ID ").append(r.getVeiculo().getId()).append("\",")
+                    .append("\"patio\": \"Pátio ID ").append(r.getPatio().getId()).append("\",")
+                    .append("\"data\": \"").append(r.getHorarioEntrada().format(formatter)).append("\",")
+                    .append("\"valor\": \"R$ ").append(String.format("%.2f", r.getValor())).append("\"")
+                    .append("}");
+                
+                if (i < reservas.size() - 1) json.append(",");
+            }
+            json.append("]");
+
+            res.setStatus(HttpServletResponse.SC_OK);
+            res.getWriter().write(json.toString());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            res.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            res.getWriter().write("[]");
+        }
     }
 
     protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
@@ -89,7 +122,7 @@ public class ReservaServlet extends HttpServlet {
         LocalDateTime saida = LocalDateTime.parse(dataSaidaStr, formatter);
 
         // Instancia os objetos dependentes mapeando os IDs
-        Patio patio = new Patio(Integer.parseInt(patioIdStr), 0, 0, 0);
+        Patio patio = new Patio(Integer.parseInt(patioIdStr), dataSaidaStr, 0, 0, 0);
         Veiculo veiculo = new Veiculo(); 
         veiculo.setId(Integer.parseInt(veiculoIdStr)); // Certifique-se de que sua model Veiculo possui setId(int)
         
