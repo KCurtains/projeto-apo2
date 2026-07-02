@@ -2,6 +2,7 @@ package controller;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -13,15 +14,20 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import dao.ReservaDao;
+import dao.VeiculoDao;
 import model.Patio;
 import model.Reserva;
 import model.Vaga;
+import model.Usuario;
 import model.Veiculo;
+import Enum.TipoVeiculoEnum;
+import javax.servlet.http.HttpSession;
 
 @WebServlet("/reserva") // Rota unificada seguindo o padrão
 public class ReservaServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
     private ReservaDao reservaDao = new ReservaDao();
+    private VeiculoDao veiculoDao = new VeiculoDao();
 
     public ReservaServlet() {
         super();
@@ -32,10 +38,55 @@ public class ReservaServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
         res.setContentType("application/json");
         res.setCharacterEncoding("UTF-8");
-        
+
+        String acao = req.getParameter("acao");
+        HttpSession session = req.getSession(false);
+
+        // 👷 Funcionário: reservas marcadas para hoje
+        if ("listarDoDia".equals(acao)) {
+            if (session == null || session.getAttribute("funcionarioLogado") == null) {
+                res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                res.getWriter().write("{\"erro\": \"Acesso restrito a funcionários.\"}");
+                return;
+            }
+            try {
+                List<Reserva> reservas = reservaDao.listarReservasDoDia();
+                DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy 'às' HH:mm");
+                StringBuilder json = new StringBuilder("[");
+                for (int i = 0; i < reservas.size(); i++) {
+                    Reserva r = reservas.get(i);
+                    String veiculo = r.getVeiculo().getModelo() + " (" + r.getVeiculo().getCor() + ") - " + r.getVeiculo().getPlaca();
+                    json.append("{")
+                        .append("\"id\": ").append(r.getId()).append(",")
+                        .append("\"veiculo\": \"").append(veiculo.replace("\"", "\\\"")).append("\",")
+                        .append("\"patio\": \"").append(r.getPatio().getEndereco().replace("\"", "\\\"")).append("\",")
+                        .append("\"horaEntrada\": \"").append(r.getHorarioEntrada().format(fmt)).append("\",")
+                        .append("\"horaSaida\": \"").append(r.getHorarioSaida().format(fmt)).append("\",")
+                        .append("\"valor\": \"R$ ").append(String.format("%.2f", r.getValor())).append("\"")
+                        .append("}");
+                    if (i < reservas.size() - 1) json.append(",");
+                }
+                json.append("]");
+                res.getWriter().write(json.toString());
+            } catch (Exception e) {
+                e.printStackTrace();
+                res.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                res.getWriter().write("[]");
+            }
+            return;
+        }
+
+        // 🙋 Cliente: suas próprias reservas (comportamento padrão)
+        // CORRIGIDO: pega o cliente REAL da sessão em vez de fixar id = 1.
+        if (session == null || session.getAttribute("usuarioLogado") == null) {
+            res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            res.getWriter().write("{\"erro\": \"Usuário não autenticado.\"}");
+            return;
+        }
+
         try {
-            // Simulando o ID do cliente logado como "1" até você ter o esquema de Sessões pronto
-            int clienteLogadoId = 1; 
+            Usuario usuarioLogado = (Usuario) session.getAttribute("usuarioLogado");
+            int clienteLogadoId = usuarioLogado.getId();
             List<Reserva> reservas = reservaDao.listarReservasPorCliente(clienteLogadoId);
 
             StringBuilder json = new StringBuilder("[");
@@ -52,7 +103,7 @@ public class ReservaServlet extends HttpServlet {
                     .append("\"data\": \"").append(r.getHorarioEntrada().format(formatter)).append("\",")
                     .append("\"valor\": \"R$ ").append(String.format("%.2f", r.getValor())).append("\"")
                     .append("}");
-                
+
                 if (i < reservas.size() - 1) json.append(",");
             }
             json.append("]");
@@ -121,22 +172,84 @@ public class ReservaServlet extends HttpServlet {
         LocalDateTime entrada = LocalDateTime.parse(dataEntradaStr, formatter);
         LocalDateTime saida = LocalDateTime.parse(dataSaidaStr, formatter);
 
+        int patioId = Integer.parseInt(patioIdStr);
+        int veiculoId = Integer.parseInt(veiculoIdStr);
+
+        // Busca o veículo real para saber o tipo (CARRO/MOTO/CAMINHAO) e assim
+        // procurar uma vaga de verdade disponível nesse pátio — antes isso estava
+        // fixo em vaga.setId(1), o que faria toda reserva cair sempre na mesma vaga.
+        Veiculo veiculoReal = veiculoDao.buscarPorId(veiculoId);
+        if (veiculoReal == null) {
+            res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            res.getWriter().write("{\"sucesso\": false, \"mensagem\": \"Veículo não encontrado.\"}");
+            return;
+        }
+
+        Integer vagaId = veiculoDao.buscarVagaDisponivel(patioId, veiculoReal.getTipoVeiculo().name());
+        if (vagaId == null) {
+            res.setStatus(HttpServletResponse.SC_CONFLICT);
+            res.getWriter().write("{\"sucesso\": false, \"mensagem\": \"Não há vagas disponíveis nesse pátio para o tipo de veículo selecionado.\"}");
+            return;
+        }
+
         // Instancia os objetos dependentes mapeando os IDs
-        Patio patio = new Patio(Integer.parseInt(patioIdStr), dataSaidaStr, 0, 0, 0);
-        Veiculo veiculo = new Veiculo(); 
-        veiculo.setId(Integer.parseInt(veiculoIdStr)); // Certifique-se de que sua model Veiculo possui setId(int)
-        
-        Vaga vaga = new Vaga(); 
-        vaga.setId(1); // Mock inicial (Sua procedure trata a busca da vaga livre usando o ID do pátio)
+        Patio patio = new Patio(patioId, "", 0, 0, 0);
+        Veiculo veiculo = new Veiculo();
+        veiculo.setId(veiculoId);
 
-        // Cria o objeto Reserva com valor base fictício (Sua procedure calcula ou recebe do front)
-        Reserva novaReserva = new Reserva(0, entrada, saida, 50.0f, null, patio, veiculo, vaga);
+        Vaga vaga = new Vaga();
+        vaga.setId(vagaId);
 
-        // Executa a procedure {CALL adicionarReserva(?,?,?,?,?,?)}
+        float valor = calcularValor(veiculoReal.getTipoVeiculo(), entrada, saida);
+
+        Reserva novaReserva = new Reserva(0, entrada, saida, valor, null, patio, veiculo, vaga);
+
+        // Executa a procedure {CALL adicionarReserva(?,?,?,?,?,?)} e marca a vaga como RESERVADA
         reservaDao.criarReserva(novaReserva);
 
         res.setStatus(HttpServletResponse.SC_OK);
-        res.getWriter().write("{\"sucesso\": true, \"mensagem\": \"Reserva realizada com sucesso!\"}");
+        res.getWriter().write("{\"sucesso\": true, \"mensagem\": \"Reserva realizada com sucesso! Valor: R$ "
+                + String.format("%.2f", valor) + "\"}");
+    }
+
+    // 💰 Calcula o valor da reserva conforme o tipo de veículo e a duração:
+    // até 12h de estadia -> cobrança por hora (iniciada); a partir de 12h -> diária fechada,
+    // cobrada por bloco de 24h.
+    //   CARRO:    R$ 10/hora  | diária R$ 50
+    //   MOTO:     R$  5/hora  | diária R$ 30
+    //   CAMINHAO: R$ 20/hora  | diária R$ 90
+    private float calcularValor(TipoVeiculoEnum tipo, LocalDateTime entrada, LocalDateTime saida) {
+        float valorHora;
+        float valorDiaria;
+        switch (tipo) {
+            case MOTO:
+                valorHora = 5f;
+                valorDiaria = 30f;
+                break;
+            case CAMINHAO:
+                valorHora = 20f;
+                valorDiaria = 90f;
+                break;
+            case CARRO:
+            default:
+                valorHora = 10f;
+                valorDiaria = 50f;
+                break;
+        }
+
+        long minutos = Duration.between(entrada, saida).toMinutes();
+        if (minutos < 0) minutos = 0;
+        double horas = minutos / 60.0;
+
+        if (horas >= 12) {
+            long dias = (long) Math.ceil(horas / 24.0);
+            if (dias < 1) dias = 1;
+            return dias * valorDiaria;
+        }
+
+        long horasCobradas = (long) Math.ceil(horas);
+        if (horasCobradas < 1) horasCobradas = 1;
+        return horasCobradas * valorHora;
     }
 
     // ❌ 2. Cancelar Reserva Existente

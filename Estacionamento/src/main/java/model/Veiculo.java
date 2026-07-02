@@ -9,7 +9,7 @@ public class Veiculo {
 	public String Placa;
 	public String Modelo;
 	public String Cor;
-	public Cliente MotoristaPrincipal;
+	public Integer MotoristaPrincipal; 
 	public TipoVeiculoEnum TipoVeiculo;
 	
 	public List<Cliente> MotoristasAutorizados;
@@ -18,7 +18,7 @@ public class Veiculo {
 		super();
 	}
 
-	public Veiculo(int id, String placa, String modelo, String cor, Cliente motoristaPrincipal,
+	public Veiculo(int id, String placa, String modelo, String cor, Integer motoristaPrincipal,
 			TipoVeiculoEnum tipoVeiculo, List<Cliente> motoristasAutorizados) {
 		super();
 		Id = id;
@@ -62,12 +62,12 @@ public class Veiculo {
 		Cor = cor;
 	}
 
-	public Cliente getMotoristaPrincipal() {
-		return MotoristaPrincipal;
+	public Integer getMotoristaPrincipal() {
+	    return MotoristaPrincipal;
 	}
 
-	public void setMotoristaPrincipal(Cliente motoristaPrincipal) {
-		MotoristaPrincipal = motoristaPrincipal;
+	public void setMotoristaPrincipal(Integer motoristaPrincipal) {
+	    MotoristaPrincipal = motoristaPrincipal;
 	}
 
 	public TipoVeiculoEnum getTipoVeiculo() {

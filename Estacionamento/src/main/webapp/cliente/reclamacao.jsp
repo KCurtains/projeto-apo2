@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EasyParking - Reclamações</title>
-    
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../CSS/global.css">
@@ -14,7 +14,7 @@
 <body>
 
     <div class="app-container">
-        
+
         <div class="header-title">
             Reclamações
         </div>
@@ -48,10 +48,9 @@
                 </div>
                 <div class="modal-body">
                     <form id="form-nova-reclamacao">
-                        <label class="small text-muted">Reserva Relacionada</label>
-                        <select class="form-select" id="recReserva" required>
-                            <option value="" disabled selected>Selecione a reserva...</option>
-                            <option value="1">Ford Ka (AVW4G37) - 23/04/2026</option>
+                        <label class="small text-muted">Estadia Relacionada</label>
+                        <select class="form-select" id="recEstadia" required>
+                            <option value="" disabled selected>Selecione a estadia...</option>
                         </select>
 
                         <label class="small text-muted">Reclamação</label>
@@ -82,19 +81,19 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <small class="text-muted d-block">Veículo</small>
-                        <strong id="infoRecVeiculo">Ford Ka 2012 Vermelho - AVW4G37</strong>
+                        <strong id="infoRecVeiculo"></strong>
                     </div>
                     <div class="mb-3">
-                        <small class="text-muted d-block">Data da Reserva</small>
-                        <strong id="infoRecData">23/04/2026</strong>
+                        <small class="text-muted d-block">Data da Estadia</small>
+                        <strong id="infoRecData"></strong>
                     </div>
                     <div class="mb-3">
                         <small class="text-muted d-block">Reclamação</small>
-                        <strong id="infoRecTexto">"[texto da reclamação aqui]"</strong>
+                        <strong id="infoRecTexto"></strong>
                     </div>
                     <div class="mb-4">
                         <small class="text-muted d-block">Status</small>
-                        <strong id="infoRecStatus">em análise</strong>
+                        <strong id="infoRecStatus"></strong>
                     </div>
                 </div>
             </div>
@@ -105,6 +104,8 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
+        let reclamacoesCarregadas = [];
+
         $(document).ready(function() {
             carregarReclamacoes();
 
@@ -115,15 +116,12 @@
         });
 
         function carregarReclamacoes() {
-            // Supondo que você queira buscar as reclamações da estadia de ID 1 (você pode deixar isso dinâmico depois)
-            const idEstadia = 1; 
-
             $.ajax({
-                url: '../reclamacao?idEstadia=' + idEstadia,
+                url: '../reclamacao?acao=listarMinhas',
                 type: 'GET',
                 dataType: 'json',
                 success: function(response) {
-                    // O Servlet devolve diretamente a lista em JSON
+                    reclamacoesCarregadas = response;
                     renderizarListaReclamacoes(response);
                 },
                 error: function(xhr) {
@@ -167,23 +165,46 @@
         function abrirModalCriarReclamacao() {
             $('#form-nova-reclamacao')[0].reset();
             $('#charCount').text('0/2000');
-            
+
+            $.ajax({
+                url: '../estadia?acao=listarMinhas',
+                type: 'GET',
+                dataType: 'json',
+                success: function(estadias) {
+                    const select = $('#recEstadia');
+                    select.find('option:not(:first)').remove();
+                    estadias.forEach(e => {
+                        select.append('<option value="' + e.id + '">' + e.veiculo + ' - ' + e.data + '</option>');
+                    });
+                },
+                error: function() {
+                    alert("Não foi possível carregar suas estadias. Tente novamente mais tarde.");
+                }
+            });
+
             var myModal = new bootstrap.Modal(document.getElementById('modalCriarReclamacao'));
             myModal.show();
         }
 
         function abrirModalInfoReclamacao(id) {
+            const rec = reclamacoesCarregadas.find(r => r.id === id);
+            if (rec) {
+                $('#infoRecVeiculo').text(rec.veiculo);
+                $('#infoRecData').text(rec.data);
+                $('#infoRecTexto').text('"' + rec.texto + '"');
+                $('#infoRecStatus').text(rec.status);
+            }
             var myModal = new bootstrap.Modal(document.getElementById('modalInfoReclamacao'));
             myModal.show();
         }
 
         function salvarReclamacao() {
             const dadosReclamacao = {
-                idReserva: $('#recReserva').val(),
+                idEstadia: $('#recEstadia').val(),
                 texto: $('#recTexto').val()
             };
 
-            if(!dadosReclamacao.idReserva || !dadosReclamacao.texto) {
+            if(!dadosReclamacao.idEstadia || !dadosReclamacao.texto) {
                 alert("Por favor, preencha todos os campos.");
                 return;
             }
@@ -197,11 +218,10 @@
                 success: function(response) {
                     alert("Reclamação enviada com sucesso!");
                     $('#modalCriarReclamacao').modal('hide');
-                    carregarReclamacoes(); 
+                    carregarReclamacoes();
                 },
-                error: function() {
-                    alert("Simulação: POST disparado para 'CriarReclamacaoServlet'.");
-                    $('#modalCriarReclamacao').modal('hide');
+                error: function(xhr) {
+                    alert("Não foi possível enviar a reclamação: " + (xhr.responseJSON ? xhr.responseJSON.mensagem : "erro no servidor."));
                 }
             });
         }

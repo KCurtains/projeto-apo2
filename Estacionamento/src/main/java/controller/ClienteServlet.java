@@ -12,6 +12,7 @@ import javax.servlet.http.HttpSession;
 
 import dao.ClienteDao;
 import model.Cliente;
+import model.Usuario;
 import Enum.SexoEnum;
 
 @WebServlet("/cliente")
@@ -19,36 +20,39 @@ public class ClienteServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
     private ClienteDao clienteDao = new ClienteDao();
 
-    // 📥 O doGet serve para BUSCAR e carregar dados na tela (ex: carregar o Perfil)
+    // Recupera o Id do usuário logado; -1 se não houver sessão.
+    private int idLogado(HttpServletRequest req) {
+        HttpSession session = req.getSession(false);
+        if (session == null || session.getAttribute("usuarioLogado") == null) return -1;
+        return ((Usuario) session.getAttribute("usuarioLogado")).getId();
+    }
+
+    // 📥 Carrega os dados do cliente logado (para o perfil.jsp)
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
         res.setContentType("application/json");
         res.setCharacterEncoding("UTF-8");
 
-        String acao = req.getParameter("acao");
-
-        // Segurança: Pegamos o usuário logado direto da sessão do servidor
         HttpSession session = req.getSession(false);
         if (session == null || session.getAttribute("usuarioLogado") == null) {
-            // Se não tiver sessão (simulação), vamos criar um cliente mock para teste
-            Cliente mock = new Cliente(1, "48923", "Fabio Henrique Baptista", SexoEnum.MASCULINO, LocalDate.of(2000, 4, 23), "nooba@gmail.com", "(11) 94002-8922", "******", false, null);
-            res.getWriter().write("{\"nome\":\""+mock.getNome()+"\",\"cpf\":\""+mock.getCpf()+"\",\"email\":\""+mock.getEmail()+"\",\"telefone\":\""+mock.getTelefone()+"\"}");
+            res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            res.getWriter().write("{\"sucesso\": false, \"mensagem\": \"Usuário não autenticado.\"}");
             return;
         }
 
-        if ("buscarPerfil".equals(acao)) {
-            Cliente clienteLogado = (Cliente) session.getAttribute("usuarioLogado");
-            // Devolve os dados do cliente logado em formato JSON para o perfil.jsp ler
-            res.getWriter().write("{\"nome\":\""+clienteLogado.getNome()+"\",\"cpf\":\""+clienteLogado.getCpf()+"\",\"email\":\""+clienteLogado.getEmail()+"\",\"telefone\":\""+clienteLogado.getTelefone()+"\"}");
-        }
+        Usuario clienteLogado = (Usuario) session.getAttribute("usuarioLogado");
+        res.getWriter().write("{"
+            + "\"nome\":\"" + escapar(clienteLogado.getNome()) + "\","
+            + "\"cpf\":\"" + escapar(clienteLogado.getCpf()) + "\","
+            + "\"email\":\"" + escapar(clienteLogado.getEmail()) + "\","
+            + "\"telefone\":\"" + escapar(clienteLogado.getTelefone()) + "\"}");
     }
 
-    // 📤 O doPost serve para SALVAR, CRIAR ou ALTERAR dados no banco
+    // 📤 Salvar/alterar
     protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
         res.setContentType("application/json");
         res.setCharacterEncoding("UTF-8");
 
         String acao = req.getParameter("acao");
-
         if (acao == null) {
             res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             res.getWriter().write("{\"sucesso\": false, \"mensagem\": \"Ação não informada.\"}");
@@ -57,28 +61,13 @@ public class ClienteServlet extends HttpServlet {
 
         try {
             switch (acao) {
-                case "cadastrar":
-                    executarCadastro(req, res);
-                    break;
-                    
-                case "atualizarSimples":
-                    // Trata as edições diretas de Nome e Telefone do perfil.jsp
-                    executarAtualizacaoSimples(req, res);
-                    break;
-                    
-                case "atualizarComplexo":
-                    // Trata as alterações seguras de Email e Senha do perfil.jsp
-                    executarAtualizacaoComplexo(req, res);
-                    break;
-                    
-                case "mudarMensalista":
-                    executarMudancaMensalista(req, res);
-                    break;
-
+                case "cadastrar":         executarCadastro(req, res); break;
+                case "atualizarSimples":  executarAtualizacaoSimples(req, res); break;
+                case "atualizarComplexo": executarAtualizacaoComplexo(req, res); break;
+                case "mudarMensalista":   executarMudancaMensalista(req, res); break;
                 default:
                     res.setStatus(HttpServletResponse.SC_NOT_FOUND);
                     res.getWriter().write("{\"sucesso\": false, \"mensagem\": \"Ação desconhecida.\"}");
-                    break;
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -87,50 +76,119 @@ public class ClienteServlet extends HttpServlet {
         }
     }
 
+    // ➕ Cadastro REAL de cliente (cria Usuario + Cliente via procedure AdicionaCliente)
     private void executarCadastro(HttpServletRequest req, HttpServletResponse res) throws IOException {
         String jsonBody = lerCorpoRequisicao(req);
-        // Lógica de salvar o cliente (Dispara a Stored Procedure do DAO)
-        Cliente novoCliente = new Cliente(0, "111.222.333-44", "Fabio Henrique Baptista", SexoEnum.MASCULINO, LocalDate.of(2000, 4, 23), "fabio@email.com", "(11) 99999-8888", "senhaForte123", false, null);
-        
+
+        String cpf = extrairCampoJson(jsonBody, "cpf");
+        String nome = extrairCampoJson(jsonBody, "nome");
+        String email = extrairCampoJson(jsonBody, "email");
+        String telefone = extrairCampoJson(jsonBody, "telefone");
+        String senha = extrairCampoJson(jsonBody, "senha");
+        String sexoStr = extrairCampoJson(jsonBody, "sexo");
+        String dataNascStr = extrairCampoJson(jsonBody, "dataNascimento");
+        String mensalistaStr = extrairCampoJson(jsonBody, "mensalista");
+
+        if (cpf.isEmpty() || nome.isEmpty() || email.isEmpty() || senha.isEmpty()) {
+            res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            res.getWriter().write("{\"sucesso\": false, \"mensagem\": \"Campos obrigatórios ausentes.\"}");
+            return;
+        }
+
+        // Reescrito como if/else (em vez de ternário) para evitar um bug do compilador
+        // do Eclipse (ecj) que gerava stackmap frames inconsistentes nessa linha,
+        // causando VerifyError no Tomcat mesmo com o código correto.
+        SexoEnum sexo;
+        if (sexoStr.isEmpty()) {
+            sexo = SexoEnum.MASCULINO;
+        } else {
+            sexo = SexoEnum.valueOf(sexoStr.toUpperCase());
+        }
+
+        LocalDate dataNascimento;
+        if (dataNascStr.isEmpty()) {
+            dataNascimento = LocalDate.of(2000, 1, 1);
+        } else {
+            dataNascimento = LocalDate.parse(dataNascStr);
+        }
+
+        boolean mensalista = "true".equalsIgnoreCase(mensalistaStr);
+
+        // senha PURA — o ClienteDao aplica o hash (regra de hash único no DAO)
+        Cliente novoCliente = new Cliente(0, cpf, nome, sexo, dataNascimento, email, telefone, senha, mensalista, null);
+
         boolean sucesso = clienteDao.cadastrarCliente(novoCliente);
         if (sucesso) {
+            res.setStatus(HttpServletResponse.SC_CREATED);
             res.getWriter().write("{\"sucesso\": true, \"mensagem\": \"Cliente cadastrado com sucesso!\"}");
         } else {
             res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            res.getWriter().write("{\"sucesso\": false, \"mensagem\": \"Erro ao salvar no banco.\"}");
+            res.getWriter().write("{\"sucesso\": false, \"mensagem\": \"Erro ao salvar no banco (e-mail/CPF já cadastrado?).\"}");
         }
     }
 
+    // 📝 Atualiza Nome e Telefone do cliente logado
     private void executarAtualizacaoSimples(HttpServletRequest req, HttpServletResponse res) throws IOException {
+        int id = idLogado(req);
+        if (id == -1) { naoAutenticado(res); return; }
+
         String jsonBody = lerCorpoRequisicao(req);
-        // Aqui você fará o update da Procedure para Nome ou Telefone
-        res.getWriter().write("{\"sucesso\": true, \"mensagem\": \"Perfil atualizado!\"}");
+        String nome = extrairCampoJson(jsonBody, "nome");
+        String telefone = extrairCampoJson(jsonBody, "telefone");
+
+        boolean ok = clienteDao.atualizarPerfilSimples(id, nome, telefone);
+        res.getWriter().write("{\"sucesso\": " + ok + ", \"mensagem\": \"" + (ok ? "Perfil atualizado!" : "Nada foi alterado.") + "\"}");
     }
 
+    // 🔒 Atualiza E-mail e Senha do cliente logado
     private void executarAtualizacaoComplexo(HttpServletRequest req, HttpServletResponse res) throws IOException {
+        int id = idLogado(req);
+        if (id == -1) { naoAutenticado(res); return; }
+
         String jsonBody = lerCorpoRequisicao(req);
-        // Aqui você validará a senha antiga e trocará por e-mail/senha nova
-        res.getWriter().write("{\"sucesso\": true, \"mensagem\": \"Credenciais alteradas com sucesso!\"}");
+        String email = extrairCampoJson(jsonBody, "email");
+        String novaSenha = extrairCampoJson(jsonBody, "senha");
+
+        boolean ok = clienteDao.atualizarPerfilComplexo(id, email, novaSenha);
+        res.getWriter().write("{\"sucesso\": " + ok + ", \"mensagem\": \"" + (ok ? "Credenciais alteradas!" : "Nada foi alterado.") + "\"}");
     }
 
+    // 🔁 Alterna o status de mensalista do cliente LOGADO (não mais id fixo = 1)
     private void executarMudancaMensalista(HttpServletRequest req, HttpServletResponse res) throws IOException {
-        Cliente clienteAtual = new Cliente(1, null, null, null, null, null, null, null, false, null);
-        boolean alterado = clienteDao.mudarStatusMensalista(clienteAtual);
-        if (alterado) {
-            res.getWriter().write("{\"sucesso\": true, \"novoStatus\": " + clienteAtual.getMensalista() + "}");
-        } else {
-            res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            res.getWriter().write("{\"sucesso\": false, \"mensagem\": \"Erro ao alterar status.\"}");
-        }
+        int id = idLogado(req);
+        if (id == -1) { naoAutenticado(res); return; }
+
+        boolean novoStatus = clienteDao.alternarMensalista(id);
+        res.getWriter().write("{\"sucesso\": true, \"novoStatus\": " + novoStatus + "}");
+    }
+
+    private void naoAutenticado(HttpServletResponse res) throws IOException {
+        res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        res.getWriter().write("{\"sucesso\": false, \"mensagem\": \"Usuário não autenticado.\"}");
+    }
+
+    private String escapar(String s) {
+        return s == null ? "" : s.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 
     private String lerCorpoRequisicao(HttpServletRequest req) throws IOException {
         BufferedReader reader = req.getReader();
         StringBuilder sb = new StringBuilder();
         String linha;
-        while ((linha = reader.readLine()) != null) {
-            sb.append(linha);
-        }
+        while ((linha = reader.readLine()) != null) sb.append(linha);
         return sb.toString();
+    }
+
+    private String extrairCampoJson(String json, String campo) {
+        try {
+            String chave = "\"" + campo + "\"";
+            if (!json.contains(chave)) return "";
+            int inicio = json.indexOf(chave) + chave.length();
+            inicio = json.indexOf("\"", inicio) + 1;
+            int fim = json.indexOf("\"", inicio);
+            return json.substring(inicio, fim);
+        } catch (Exception e) {
+            return "";
+        }
     }
 }

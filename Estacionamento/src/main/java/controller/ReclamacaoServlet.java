@@ -2,6 +2,7 @@ package controller;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import javax.servlet.ServletException;
@@ -9,16 +10,20 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import dao.ReclamacaoDao;
+import dao.ReclamacaoDao.ReclamacaoDetalhada;
 import model.Reclamacao;
 import model.RegistroEstadia;
+import model.Usuario;
 import Enum.StatusReclamacaoEnum;
 
 @WebServlet("/reclamacao")
 public class ReclamacaoServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
     private ReclamacaoDao reclamacaoDao = new ReclamacaoDao();
+    private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     public ReclamacaoServlet() {
         super();
@@ -28,42 +33,67 @@ public class ReclamacaoServlet extends HttpServlet {
         res.setContentType("application/json");
         res.setCharacterEncoding("UTF-8");
 
-        // Captura o ID da estadia enviada pelo Front-end
-        String idEstadiaStr = req.getParameter("idEstadia");
-        
-        if (idEstadiaStr == null || idEstadiaStr.isEmpty()) {
-            res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            res.getWriter().write("{\"sucesso\": false, \"mensagem\": \"ID da estadia não informado.\"}");
-            return;
-        }
+        String acao = req.getParameter("acao");
+        HttpSession session = req.getSession(false);
 
         try {
-            int idEstadia = Integer.parseInt(idEstadiaStr);
-            List<Reclamacao> reclamacoes = reclamacaoDao.listarReclamacoes(idEstadia);
-            
-            // Construção manual do JSON array
-            StringBuilder json = new StringBuilder("[");
-            for (int i = 0; i < reclamacoes.size(); i++) {
-                Reclamacao r = reclamacoes.get(i);
-                json.append("{")
-                    .append("\"id\": ").append(r.getId()).append(",")
-                    .append("\"texto\": \"").append(r.getConteudo().replace("\"", "\\\"")).append("\",")
-                    .append("\"status\": \"").append(r.getStatusReclamacao().name()).append("\"")
-                    // Se houver uma data, adicione aqui! O BD atual não parece gravar a data da reclamação na tabela[cite: 89].
-                    .append("}");
-                
-                if (i < reclamacoes.size() - 1) json.append(",");
+            // 🧑‍💼 Gerente: todas as reclamações do sistema
+            if ("listarTodas".equals(acao)) {
+                if (session == null || session.getAttribute("gerenteLogado") == null) {
+                    res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    res.getWriter().write("{\"sucesso\": false, \"mensagem\": \"Acesso restrito ao gerente.\"}");
+                    return;
+                }
+                res.getWriter().write(montarJsonDetalhado(reclamacaoDao.listarTodas()));
+                return;
             }
-            json.append("]");
 
-            res.setStatus(HttpServletResponse.SC_OK);
-            res.getWriter().write(json.toString());
+            // 🙋 Cliente: só as reclamações que ele mesmo abriu
+            if ("listarMinhas".equals(acao) || acao == null) {
+                if (session == null || session.getAttribute("usuarioLogado") == null) {
+                    res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    res.getWriter().write("{\"sucesso\": false, \"mensagem\": \"Usuário não autenticado.\"}");
+                    return;
+                }
+                int clienteId = ((Usuario) session.getAttribute("usuarioLogado")).getId();
+                res.getWriter().write(montarJsonDetalhado(reclamacaoDao.listarPorCliente(clienteId)));
+                return;
+            }
 
+            res.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            res.getWriter().write("{\"sucesso\": false, \"mensagem\": \"Ação desconhecida.\"}");
         } catch (Exception e) {
             e.printStackTrace();
             res.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             res.getWriter().write("{\"sucesso\": false, \"mensagem\": \"Erro interno no servidor.\"}");
         }
+    }
+
+    // Converte o status interno do enum para o texto exibido nas telas.
+    private String statusParaTexto(StatusReclamacaoEnum status) {
+        switch (status) {
+            case EM_ANALISE: return "Em análise";
+            case RESOLVIDA:  return "Resolvida";
+            case RECUSADA:   return "Recusada";
+            default:         return status.name();
+        }
+    }
+
+    private String montarJsonDetalhado(List<ReclamacaoDetalhada> lista) {
+        StringBuilder json = new StringBuilder("[");
+        for (int i = 0; i < lista.size(); i++) {
+            ReclamacaoDetalhada d = lista.get(i);
+            json.append("{")
+                .append("\"id\": ").append(d.reclamacao.getId()).append(",")
+                .append("\"veiculo\": \"").append(d.veiculo.replace("\"", "\\\"")).append("\",")
+                .append("\"data\": \"").append(d.dataEstadia.format(FMT)).append("\",")
+                .append("\"texto\": \"").append(d.reclamacao.getConteudo().replace("\"", "\\\"")).append("\",")
+                .append("\"status\": \"").append(statusParaTexto(d.reclamacao.getStatusReclamacao())).append("\"")
+                .append("}");
+            if (i < lista.size() - 1) json.append(",");
+        }
+        json.append("]");
+        return json.toString();
     }
 
     protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
@@ -105,15 +135,15 @@ public class ReclamacaoServlet extends HttpServlet {
         String jsonBody = lerCorpoRequisicao(req);
 
         String texto = extrairCampoJson(jsonBody, "texto");
-        String idReservaStr = extrairCampoJson(jsonBody, "idReserva");
+        String idEstadiaStr = extrairCampoJson(jsonBody, "idEstadia");
 
-        if (texto.isEmpty() || idReservaStr.isEmpty()) {
+        if (texto.isEmpty() || idEstadiaStr.isEmpty()) {
             res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             res.getWriter().write("{\"sucesso\": false, \"mensagem\": \"Campos obrigatórios ausentes.\"}");
             return;
         }
 
-        int idEstadia = Integer.parseInt(idReservaStr);
+        int idEstadia = Integer.parseInt(idEstadiaStr);
 
         // Instancia a dependência necessária para a model
         RegistroEstadia estadia = new RegistroEstadia();

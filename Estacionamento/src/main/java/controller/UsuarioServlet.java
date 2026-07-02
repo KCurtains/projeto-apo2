@@ -86,10 +86,8 @@ public class UsuarioServlet extends HttpServlet {
         SexoEnum sexo = SexoEnum.valueOf(sexoStr.toUpperCase());
         LocalDate dataNascimento = LocalDate.parse(dataNascStr);
         
-        // Aplica a criptografia SHA-256 usando o método utilitário que você criou no seu DAO
-        String senhaHash = UsuarioDao.gerarHash(senhaBruta);
-
-        Usuario novoUsuario = new Usuario(0, cpf, nome, sexo, dataNascimento, email, telefone, senhaHash);
+        // CORRIGIDO: não aplica hash aqui. O UsuarioDao já aplica o hash uma única vez.
+        Usuario novoUsuario = new Usuario(0, cpf, nome, sexo, dataNascimento, email, telefone, senhaBruta);
         
         boolean cadastrou = usuarioDao.cadastrarUsuario(novoUsuario);
 
@@ -118,10 +116,8 @@ public class UsuarioServlet extends HttpServlet {
         SexoEnum sexo = SexoEnum.valueOf(sexoStr.toUpperCase());
         LocalDate dataNascimento = LocalDate.parse(dataNascStr);
         
-        // Criptografa a nova senha antes de mandar para o update
-        String senhaHash = UsuarioDao.gerarHash(senhaBruta);
-
-        Usuario usuarioAtualizar = new Usuario(id, cpf, nome, sexo, dataNascimento, email, telefone, senhaHash);
+        // CORRIGIDO: sem hash aqui — o UsuarioDao.atualizarUsuario aplica o hash.
+        Usuario usuarioAtualizar = new Usuario(id, cpf, nome, sexo, dataNascimento, email, telefone, senhaBruta);
         
         // Executa a procedure {CALL UpdateUsuario(?,?,?,?,?,?,?)}
         usuarioDao.atualizarUsuario(usuarioAtualizar);
