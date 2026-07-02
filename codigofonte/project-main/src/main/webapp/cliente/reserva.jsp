@@ -124,8 +124,6 @@
         let reservasCarregadas = [];
         let veiculosCarregados = [];
 
-        // Tarifas usadas só para a ESTIMATIVA mostrada na tela — o valor final e
-        // oficial é sempre calculado e conferido pelo servidor.
         const TARIFAS = {
             CARRO:    { hora: 10, diaria: 50 },
             MOTO:     { hora: 5,  diaria: 30 },
@@ -134,10 +132,6 @@
 
         $(document).ready(function() {
             carregarReservas();
-
-            // 🔍 Reconsulta a disponibilidade de vagas sempre que o pátio OU o
-            // veículo mudam, usando o TIPO do veículo selecionado (antes estava
-            // fixo em "CARRO", então mostrava vaga errada para moto/caminhão).
             $('#resPátio, #resVeiculo').on('change', function() {
                 verificarDisponibilidade();
                 atualizarValorEstimado();
@@ -201,12 +195,12 @@
 
         function carregarReservas() {
             $.ajax({
-                url: '../reserva', // Bate no seu doGet
+                url: '../reserva', 
                 type: 'GET',
                 dataType: 'json',
                 success: function(response) {
                     reservasCarregadas = response;
-                    renderizarLista(response); // Passa os dados reais para a sua função de renderizar
+                    renderizarLista(response); 
                 },
                 error: function(xhr) {
                     console.error("Erro ao buscar as reservas:", xhr.responseText);

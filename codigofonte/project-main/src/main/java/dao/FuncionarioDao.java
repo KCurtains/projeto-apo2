@@ -10,8 +10,6 @@ import util.dbConnection;
 
 public class FuncionarioDao {
 
-	// CORRIGIDO: a tabela Funcionario só tem o Id (FK p/ Usuario). Todos os dados
-	// (nome, email, senha...) estão em Usuario. Por isso o login faz JOIN e compara o HASH.
 	public Funcionario validarLogin(String email, String senha) {
 		String sql = "SELECT u.Id, u.CPF, u.Nome, u.Email, u.Telefone "
 				   + "FROM Usuario u INNER JOIN Funcionario f ON u.Id = f.Id "
@@ -33,7 +31,7 @@ public class FuncionarioDao {
 						null,
 						rs.getString("Email"),
 						rs.getString("Telefone"),
-						null // nunca devolvemos a senha
+						null 
 					);
 				}
 			}
@@ -44,7 +42,7 @@ public class FuncionarioDao {
 		return null;
 	}
 
-	// CORRIGIDO: atualiza em Usuario (Id é compartilhado entre Usuario e Funcionario).
+	// atualiza em Usuario (Id é compartilhado entre Usuario e Funcionario).
 	public boolean atualizarPerfilSimples(int id, String nome, String telefone) {
 		String sql = "UPDATE Usuario SET Nome = ?, Telefone = ? WHERE Id = ?";
 		try (Connection conn = dbConnection.getConnection();
@@ -59,7 +57,7 @@ public class FuncionarioDao {
 		}
 	}
 
-	// CORRIGIDO: grava a senha com HASH, em Usuario.
+	// grava a senha com HASH, em Usuario.
 	public boolean atualizarPerfilComplexo(int id, String email, String novaSenha) {
 		String sql = "UPDATE Usuario SET Email = ?, Senha = ? WHERE Id = ?";
 		try (Connection conn = dbConnection.getConnection();

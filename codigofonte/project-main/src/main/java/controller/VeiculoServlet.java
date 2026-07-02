@@ -26,10 +26,7 @@ public class VeiculoServlet extends HttpServlet {
     private ClienteDao clienteDao = new ClienteDao();
     private Gson gson = new Gson();
 
-    // ---------------------------------------------------------------------
-    // GET: listar veículos do cliente logado, ou os motoristas autorizados
-    // de um veículo específico.
-    // ---------------------------------------------------------------------
+
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
         res.setContentType("application/json");
         res.setCharacterEncoding("UTF-8");
@@ -81,10 +78,6 @@ public class VeiculoServlet extends HttpServlet {
                 return;
             }
 
-            // Padrão: listar os veículos do cliente logado.
-            // Construído manualmente (em vez de gson.toJson) porque o model usa campos
-            // públicos capitalizados (Id, Placa...) e o Gson serializaria com essas
-            // mesmas chaves maiúsculas, quebrando o front-end que espera JSON minúsculo.
             List<Veiculo> veiculos = veiculoDao.listarPorCliente(usuario.getId());
             StringBuilder json = new StringBuilder("[");
             for (int i = 0; i < veiculos.size(); i++) {
@@ -106,9 +99,7 @@ public class VeiculoServlet extends HttpServlet {
         }
     }
 
-    // ---------------------------------------------------------------------
-    // POST: cadastrar/atualizar/remover veículo, e autorizar/remover motoristas.
-    // ---------------------------------------------------------------------
+    // cadastrar/atualizar/remover veículo, e autorizar/remover motoristas.
     protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
         res.setContentType("application/json");
         res.setCharacterEncoding("UTF-8");
@@ -146,7 +137,7 @@ public class VeiculoServlet extends HttpServlet {
                 return;
             }
 
-            // Padrão (sem acao, ou acao=adicionar): cadastra um novo veículo
+            // cadastra um novo veículo
             Veiculo v = new Veiculo();
             v.setPlaca(json.get("placa").getAsString());
             v.setModelo(json.get("modelo").getAsString());

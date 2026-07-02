@@ -17,8 +17,6 @@ import util.dbConnection;
 
 public class ReclamacaoDao {
 
-	// Representa uma reclamação já enriquecida com dados do veículo/data da estadia,
-	// só para exibição nas telas de listagem (gerente e cliente).
 	public static class ReclamacaoDetalhada {
 		public Reclamacao reclamacao;
 		public String veiculo;
@@ -111,14 +109,12 @@ public class ReclamacaoDao {
             CallableStatement stmt = conn.prepareCall(sql)){
             
             stmt.setInt(1, idEstadia);
-            ResultSet rs = stmt.executeQuery(); // Captura o resultado da consulta
+            ResultSet rs = stmt.executeQuery(); 
             
             while (rs.next()) {
-                // Formata o status vindo do BD ("EM ANALISE" -> "EM_ANALISE")
                 String statusBd = rs.getString("StatusReclamacao").replace(" ", "_").toUpperCase();
                 StatusReclamacaoEnum status = StatusReclamacaoEnum.valueOf(statusBd);
-                
-                // Instancia a estadia apenas com o ID para compor o objeto
+
                 RegistroEstadia estadia = new RegistroEstadia();
                 estadia.setId(rs.getInt("EstadiaRelacionada"));
                 

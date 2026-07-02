@@ -13,7 +13,7 @@ import dao.UsuarioDao;
 import model.Usuario;
 import Enum.SexoEnum;
 
-@WebServlet("/usuario") // Mapeamento unificado da rota de usuários
+@WebServlet("/usuario") 
 public class UsuarioServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
     private UsuarioDao usuarioDao = new UsuarioDao();
@@ -64,7 +64,7 @@ public class UsuarioServlet extends HttpServlet {
         }
     }
 
-    // ➕ 1. Cadastrar Usuário Geral (Garante a aplicação do Hash na Senha)
+    //  Cadastrar Usuário Geral 
     private void executarCadastro(HttpServletRequest req, HttpServletResponse res) throws IOException {
         String jsonBody = lerCorpoRequisicao(req);
 
@@ -82,11 +82,8 @@ public class UsuarioServlet extends HttpServlet {
             return;
         }
 
-        // Conversões de Tipos com segurança
         SexoEnum sexo = SexoEnum.valueOf(sexoStr.toUpperCase());
         LocalDate dataNascimento = LocalDate.parse(dataNascStr);
-        
-        // CORRIGIDO: não aplica hash aqui. O UsuarioDao já aplica o hash uma única vez.
         Usuario novoUsuario = new Usuario(0, cpf, nome, sexo, dataNascimento, email, telefone, senhaBruta);
         
         boolean cadastrou = usuarioDao.cadastrarUsuario(novoUsuario);
@@ -100,7 +97,7 @@ public class UsuarioServlet extends HttpServlet {
         }
     }
 
-    // 🔄 2. Atualizar Usuário Completo
+    //  Atualiza Usuário Completo
     private void executarAtualizacao(HttpServletRequest req, HttpServletResponse res) throws IOException {
         String jsonBody = lerCorpoRequisicao(req);
 
@@ -115,18 +112,14 @@ public class UsuarioServlet extends HttpServlet {
 
         SexoEnum sexo = SexoEnum.valueOf(sexoStr.toUpperCase());
         LocalDate dataNascimento = LocalDate.parse(dataNascStr);
-        
-        // CORRIGIDO: sem hash aqui — o UsuarioDao.atualizarUsuario aplica o hash.
         Usuario usuarioAtualizar = new Usuario(id, cpf, nome, sexo, dataNascimento, email, telefone, senhaBruta);
-        
-        // Executa a procedure {CALL UpdateUsuario(?,?,?,?,?,?,?)}
         usuarioDao.atualizarUsuario(usuarioAtualizar);
 
         res.setStatus(HttpServletResponse.SC_OK);
         res.getWriter().write("{\"sucesso\": true, \"mensagem\": \"Dados do usuário atualizados!\"}");
     }
 
-    // ❌ 3. Remover Usuário do Sistema
+    // Remove Usuário do Sistema
     private void executarRemocao(HttpServletRequest req, HttpServletResponse res) throws IOException {
         String jsonBody = lerCorpoRequisicao(req);
         String idStr = extrairCampoJson(jsonBody, "id");
@@ -139,8 +132,6 @@ public class UsuarioServlet extends HttpServlet {
 
         int id = Integer.parseInt(idStr);
         Usuario usuarioDeletar = new Usuario(id, null, null, null, null, null, null, null);
-
-        // Executa a procedure {CALL RemoverUsuario(?)}
         usuarioDao.removerUsuario(usuarioDeletar);
 
         res.setStatus(HttpServletResponse.SC_OK);

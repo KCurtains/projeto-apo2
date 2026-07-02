@@ -223,7 +223,6 @@
             $('#' + viewId).removeClass('d-none');
         }
 
-        // Envia o código de verificação para o e-mail informado (cai no Mailtrap)
         function enviarCodigoCadastro() {
             const nome = $('#cadNome').val();
             const cpf = $('#cadCpf').val();
@@ -248,7 +247,6 @@
             });
         }
 
-        // Confere o código digitado antes de seguir para os dados do veículo
         function verificarCodigoCadastro() {
             const codigo = $('#cadCodigo').val();
             if (!codigo) {
@@ -316,22 +314,19 @@
 
                 sexo: "MASCULINO", 
                 dataNascimento: "2000-01-01",
-                mensalista: false   // cliente comum por padrão
+                mensalista: false   
             };
 
-            // Validação simples antes de mandar para o servidor
             if (!novoUsuario.nome || !novoUsuario.cpf || !novoUsuario.email || !novoUsuario.senha) {
                 alert("Por favor, preencha os campos obrigatórios do cadastro.");
                 return;
             }
 
-            // Se as senhas não baterem, interrompe o envio
             if (novoUsuario.senha !== $('#cadConfirmaSenha').val()) {
                 alert("As senhas informadas não coincidem!");
                 return;
             }
 
-            // 2. O AJAX envia essa constante "novoUsuario" convertida em texto para o Servlet
             $.ajax({
                 url: 'cliente?acao=cadastrar', 
                 type: 'POST',

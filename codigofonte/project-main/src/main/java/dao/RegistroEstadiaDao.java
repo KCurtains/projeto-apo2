@@ -67,7 +67,6 @@ public class RegistroEstadiaDao {
 				stmt.execute();
 			}
 
-			// Reserva finalizada -> libera a vaga para uma futura reserva.
 			try (PreparedStatement stmt = conn.prepareStatement(
 					"UPDATE Vaga v INNER JOIN Reserva r ON v.Id = r.VagaId "
 					+ "SET v.StatusVaga = 'DISPONIVEL' WHERE r.Id = ?")) {
@@ -79,8 +78,6 @@ public class RegistroEstadiaDao {
         }
     }
 
-	// Lista as estadias ainda em andamento (veículo dentro do pátio), com dados do
-	// veículo e do pátio já carregados (usada na tela "Estadias em Andamento" do funcionário).
 	public List<RegistroEstadia> listarEmAndamento() {
 		List<RegistroEstadia> lista = new ArrayList<>();
 		String sql = "SELECT re.Id AS EstadiaId, re.HorarioEntradaReal, re.HorarioSaidaReal, "
@@ -126,8 +123,6 @@ public class RegistroEstadiaDao {
 		return lista;
 	}
 
-	// Lista as estadias (finalizadas ou não) associadas aos veículos de um cliente —
-	// usada para popular o seletor "Reserva Relacionada" na tela de reclamações do cliente.
 	public List<RegistroEstadia> listarEstadiasPorCliente(int clienteId) {
 		List<RegistroEstadia> lista = new ArrayList<>();
 		String sql = "SELECT re.Id AS EstadiaId, re.HorarioEntradaReal, re.HorarioSaidaReal, "

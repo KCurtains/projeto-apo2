@@ -26,11 +26,6 @@ public class PatioDao {
 				stmt.execute();
 			}
 
-			// CORRIGIDO: o cadastro de um pátio só gravava a CAPACIDADE (um número),
-			// mas nunca criava as vagas (linhas da tabela Vaga) de verdade — por isso
-			// a checagem de disponibilidade sempre dava "sem vagas", mesmo com a
-			// capacidade cadastrada. Agora, logo após criar o pátio, sincronizamos
-			// a tabela Vaga para ter uma linha DISPONIVEL para cada vaga da capacidade.
 			int novoId;
 			try (PreparedStatement idStmt = conn.prepareStatement("SELECT LAST_INSERT_ID()");
 				 ResultSet rs = idStmt.executeQuery()) {
@@ -56,17 +51,13 @@ public class PatioDao {
 				stmt.execute();
 			}
 
-			// Se a capacidade aumentou, cria as vagas novas que estavam faltando.
-			// (Se a capacidade diminuiu, as vagas excedentes não são removidas
-			// automaticamente, para nunca apagar uma vaga já em uso.)
+
 			sincronizarVagas(conn, patio.getId());
 	        } catch (SQLException e) {
 	            throw new RuntimeException(e);
 	        }
 	}
 
-	// Garante que a tabela Vaga tenha, para este pátio, uma linha DISPONIVEL para
-	// cada vaga contada na capacidade cadastrada (CapacidadeCarro/Moto/Caminhao).
 	private void sincronizarVagas(Connection conn, int patioId) throws SQLException {
 		int capCarro = 0, capMoto = 0, capCaminhao = 0;
 		try (PreparedStatement stmt = conn.prepareStatement(
@@ -114,11 +105,7 @@ public class PatioDao {
 		String sql = "{CALL RemoverPatio(?)}";
 
 		try (Connection conn = dbConnection.getConnection()) {
-			// CORRIGIDO: agora que o pátio tem vagas de verdade na tabela Vaga
-			// (ver adicionarPatio), é preciso apagar essas vagas antes de apagar
-			// o pátio, senão a exclusão falha por violar a chave estrangeira.
-			// Se alguma vaga já estiver ligada a uma reserva, a exclusão continua
-			// falhando (de propósito) para não perder o histórico de reservas.
+
 			try (PreparedStatement del = conn.prepareStatement("DELETE FROM Vaga WHERE PatioId = ?")) {
 				del.setInt(1, patio.getId());
 				del.executeUpdate();

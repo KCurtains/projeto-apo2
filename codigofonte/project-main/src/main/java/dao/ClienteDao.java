@@ -13,8 +13,6 @@ import util.dbConnection;
 
 public class ClienteDao {
 
-	// CORRIGIDO: usa a procedure AdicionaCliente (cria Usuario + Cliente, 8 parâmetros)
-	// e aplica o hash na senha, igual ao restante do sistema.
 	public boolean cadastrarCliente(Cliente cliente) {
 		String sql = "{CALL AdicionaCliente(?,?,?,?,?,?,?,?)}";
 
@@ -54,9 +52,6 @@ public class ClienteDao {
 			throw new RuntimeException(e);
 		}
 	}
-
-	// (Removi o antigo listarReservasCliente: ele chamava UpdateCliente por engano.
-	//  Para listar reservas do cliente, use ReservaDao.listarReservasPorCliente.)
 
 	// Atualiza Nome e Telefone (dados ficam na tabela Usuario, Id compartilhado).
 	public boolean atualizarPerfilSimples(int id, String nome, String telefone) {

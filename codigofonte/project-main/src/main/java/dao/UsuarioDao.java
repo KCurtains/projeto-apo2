@@ -16,7 +16,6 @@ import util.dbConnection;
 
 public class UsuarioDao {
 
-	// Cadastro: aplica o hash UMA vez, aqui no DAO. (O servlet deve mandar a senha PURA.)
 	public boolean cadastrarUsuario(Usuario usuario) {
 		String sql = "{CALL AdicionarUsuario(?,?,?,?,?,?,?)}";
 
@@ -29,7 +28,7 @@ public class UsuarioDao {
 			stmt.setObject(4, usuario.getDataNascimento());
 			stmt.setString(5, usuario.getEmail());
 			stmt.setString(6, usuario.getTelefone());
-			stmt.setString(7, gerarHash(usuario.getSenha())); // hash aplicado só aqui
+			stmt.setString(7, gerarHash(usuario.getSenha())); 
 
 			stmt.execute();
 			return true;
@@ -39,8 +38,6 @@ public class UsuarioDao {
 		}
 	}
 
-	// Login: SELECT direto no Usuario (não depende de procedure inexistente).
-	// Compara o hash da senha digitada com o hash guardado no banco.
 	public Usuario autenticarUsuario(String email, String senha) {
 		String sql = "SELECT Id, CPF, Nome, Sexo, DataNascimento, Email, Telefone "
 				   + "FROM Usuario WHERE Email = ? AND Senha = ?";
@@ -49,8 +46,7 @@ public class UsuarioDao {
 			 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
 			stmt.setString(1, email);
-			stmt.setString(2, gerarHash(senha)); // hash simples, bate com o cadastro
-
+			stmt.setString(2, gerarHash(senha)); 
 			try (ResultSet rs = stmt.executeQuery()) {
 				if (rs.next()) {
 					Usuario usuario = new Usuario(0, null, null, null, null, null, null, null);
@@ -92,8 +88,6 @@ public class UsuarioDao {
 		}
 	}
 
-	// UpdateUsuario(Id, Nome, Sexo, DataNascimento, Email, Telefone, Senha)
-	// CORRIGIDO: o 1º parâmetro é o Id (antes era enviado o CPF por engano).
 	public void atualizarUsuario(Usuario usuario) {
 		String sql = "{CALL UpdateUsuario(?,?,?,?,?,?,?)}";
 
@@ -114,7 +108,6 @@ public class UsuarioDao {
 		}
 	}
 
-	// CORRIGIDO: a procedure no banco chama-se RemoveUsuario (sem "r").
 	public void removerUsuario(Usuario usuario) {
 		String sql = "{CALL RemoveUsuario(?)}";
 
@@ -172,8 +165,6 @@ public class UsuarioDao {
 		}
 	}
 
-	// Atualiza um único campo simples (Nome ou Telefone). 'coluna' é sempre um valor
-	// fixo escolhido pelo próprio servlet (whitelist), nunca texto vindo direto do usuário.
 	public boolean atualizarCampoSimples(int id, String coluna, String valor) {
 		if (!"Nome".equals(coluna) && !"Telefone".equals(coluna)) {
 			throw new IllegalArgumentException("Campo não permitido: " + coluna);

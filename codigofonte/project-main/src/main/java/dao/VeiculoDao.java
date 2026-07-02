@@ -61,7 +61,7 @@ public class VeiculoDao {
 				stmt.setInt(1, veiculo.getId());
 				stmt.setString(2, veiculo.getModelo());
 				stmt.setString(3, veiculo.getCor());
-				stmt.setObject(4, veiculo.getMotoristaPrincipal()); // setObject trata null com segurança
+				stmt.setObject(4, veiculo.getMotoristaPrincipal()); 
 				stmt.setString(5, veiculo.getTipoVeiculo().name());
 				
 				stmt.execute();
@@ -117,7 +117,7 @@ public class VeiculoDao {
 		return null;
 	}
 
-	// Autoriza um cliente já cadastrado a dirigir um veículo (tabela associativa VeiculoCliente).
+	// Autoriza um cliente já cadastrado a dirigir um veículo.
 	public void adicionarMotorista(int clienteId, int veiculoId) {
 		String sql = "{CALL AdicionaMotorista(?,?)}";
 		try (Connection conn = dbConnection.getConnection();
@@ -143,7 +143,7 @@ public class VeiculoDao {
 		}
 	}
 
-	// Lista os motoristas autorizados (além do principal) de um veículo.
+	// Lista os motoristas autorizados de um veículo.
 	public List<Cliente> listarMotoristasAutorizados(int veiculoId) {
 		List<Cliente> lista = new ArrayList<>();
 		String sql = "SELECT u.Id, u.CPF, u.Nome, u.Email, u.Telefone "
@@ -166,7 +166,7 @@ public class VeiculoDao {
 		return lista;
 	}
 
-	// Busca um Id de vaga DISPONÍVEL em um pátio para um tipo de veículo (usada ao criar reservas).
+	// Busca um Id de vaga DISPONÍVEL em um pátio para um tipo de veículo.
 	public Integer buscarVagaDisponivel(int patioId, String tipo) {
 		String sql = "SELECT Id FROM Vaga WHERE PatioId = ? AND Tipo = ? AND StatusVaga = 'DISPONIVEL' LIMIT 1";
 		try (Connection conn = dbConnection.getConnection();

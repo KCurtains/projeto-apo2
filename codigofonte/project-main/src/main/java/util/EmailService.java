@@ -11,20 +11,11 @@ import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
-/**
- * Envio de e-mail via Mailtrap (Email Testing / Sandbox).
- * Pegue Host, Porta, Username e Password no seu inbox do Mailtrap:
- *   Email Testing -> Sandboxes -> [seu inbox] -> aba Integration -> SMTP.
- *
- * Dica: em vez de deixar usuário/senha no código, você pode definir as
- * variáveis de ambiente MAILTRAP_USER e MAILTRAP_PASS.
- */
 public class EmailService {
 
     private static final String HOST = "sandbox.smtp.mailtrap.io";
-    private static final String PORT = "2525"; // 25, 465, 587 ou 2525 também funcionam
+    private static final String PORT = "2525"; 
 
-    // Preencha com os dados do SEU inbox (ou use as variáveis de ambiente).
     private static final String USER =
             System.getenv().getOrDefault("MAILTRAP_USER", "b4b40c0e30a852");
     private static final String PASS =
@@ -58,7 +49,6 @@ public class EmailService {
         }
     }
 
-    // Atalho para o e-mail de código de verificação.
     public static void enviarCodigo(String destinatario, String codigo) {
         String assunto = "Seu código de verificação - EasyParking";
         String corpo = "Olá!\n\n"

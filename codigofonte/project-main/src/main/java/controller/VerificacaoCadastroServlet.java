@@ -13,12 +13,7 @@ import javax.servlet.http.HttpSession;
 import dao.UsuarioDao;
 import util.EmailService;
 
-/**
- * Verificação de e-mail durante o CADASTRO (antes de a conta ser criada).
- * Casa com o login.jsp (tela "código de verificação"):
- *   acao=enviar    -> valida e-mail, gera código de 6 dígitos, envia via Mailtrap e guarda na sessão
- *   acao=verificar -> confere o código digitado
- */
+
 @WebServlet("/verificacao-cadastro")
 public class VerificacaoCadastroServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
