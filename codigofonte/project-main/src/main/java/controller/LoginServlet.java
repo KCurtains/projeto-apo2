@@ -20,12 +20,7 @@ import model.Usuario;
 public class LoginServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
     private UsuarioDao usuarioDao = new UsuarioDao();
-    // CORRIGIDO: Cliente, Funcionário e Gerente moram todos na mesma tabela Usuario,
-    // então o login genérico (usuarioDao.autenticarUsuario) autentica qualquer um dos três,
-    // mas antes disso o código sempre tratava a conta como Cliente e mandava para a tela
-    // de cliente, mesmo quando era um funcionário ou gerente logando. Agora, depois de
-    // confirmar a senha, descobrimos o papel real da conta (Gerente > Funcionário > Cliente,
-    // do mais específico para o mais genérico) e mandamos cada um para a tela certa.
+
     private FuncionarioDao funcionarioDao = new FuncionarioDao();
     private GerenteDao gerenteDao = new GerenteDao();
 
@@ -49,9 +44,7 @@ public class LoginServlet extends HttpServlet {
             if (usuarioAutenticado != null) {
                 HttpSession session = req.getSession();
 
-                // Descobre o papel real da conta: primeiro tenta Gerente (o mais específico —
-                // todo Gerente também é Funcionário), depois Funcionário, e só por último
-                // trata como Cliente (o caso mais comum, sem nenhuma linha nas outras tabelas).
+                // descobre o papel/cardo do usuario
                 Gerente gerente = gerenteDao.validarLogin(email, senha);
                 Funcionario funcionario = (gerente == null) ? funcionarioDao.validarLogin(email, senha) : null;
 
@@ -63,8 +56,6 @@ public class LoginServlet extends HttpServlet {
                     session.setAttribute("funcionarioLogado", funcionario);
                     redirecionar = "funcionario/reservas_funcionario.jsp";
                 } else {
-                    // CORRIGIDO: grava o OBJETO completo na chave "usuarioLogado" — a mesma que
-                    // VeiculoServlet, ValidacaoServlet, ClienteServlet e ReservaServlet leem.
                     session.setAttribute("usuarioLogado", usuarioAutenticado);
                     redirecionar = "cliente/reserva.jsp";
                 }

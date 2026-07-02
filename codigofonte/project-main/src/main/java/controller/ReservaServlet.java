@@ -23,7 +23,7 @@ import model.Veiculo;
 import Enum.TipoVeiculoEnum;
 import javax.servlet.http.HttpSession;
 
-@WebServlet("/reserva") // Rota unificada seguindo o padrão
+@WebServlet("/reserva") 
 public class ReservaServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
     private ReservaDao reservaDao = new ReservaDao();
@@ -33,8 +33,7 @@ public class ReservaServlet extends HttpServlet {
         super();
     }
 
-    // O doGet pode ser usado para listar as reservas do cliente logado
- // Substitua o seu doGet atual no ReservaServlet
+
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
         res.setContentType("application/json");
         res.setCharacterEncoding("UTF-8");
@@ -42,7 +41,7 @@ public class ReservaServlet extends HttpServlet {
         String acao = req.getParameter("acao");
         HttpSession session = req.getSession(false);
 
-        // 👷 Funcionário: reservas marcadas para hoje
+        // reservas marcadas para hoje
         if ("listarDoDia".equals(acao)) {
             if (session == null || session.getAttribute("funcionarioLogado") == null) {
                 res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -76,8 +75,7 @@ public class ReservaServlet extends HttpServlet {
             return;
         }
 
-        // 🙋 Cliente: suas próprias reservas (comportamento padrão)
-        // CORRIGIDO: pega o cliente REAL da sessão em vez de fixar id = 1.
+        // reservas do cliente
         if (session == null || session.getAttribute("usuarioLogado") == null) {
             res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             res.getWriter().write("{\"erro\": \"Usuário não autenticado.\"}");
@@ -97,7 +95,7 @@ public class ReservaServlet extends HttpServlet {
                 Reserva r = reservas.get(i);
                 json.append("{")
                     .append("\"id\": ").append(r.getId()).append(",")
-                    // Adaptando para mostrar os IDs enquanto não trazemos o nome via JOIN
+                    // Mais pra frente trazer os nomes por meio de um JOIN
                     .append("\"veiculo\": \"Veículo ID ").append(r.getVeiculo().getId()).append("\",")
                     .append("\"patio\": \"Pátio ID ").append(r.getPatio().getId()).append("\",")
                     .append("\"data\": \"").append(r.getHorarioEntrada().format(formatter)).append("\",")
@@ -152,7 +150,7 @@ public class ReservaServlet extends HttpServlet {
         }
     }
 
-    // 📅 1. Criar Agendamento de Reserva
+    // cria agendamento
     private void executarCriacao(HttpServletRequest req, HttpServletResponse res) throws IOException {
         String jsonBody = lerCorpoRequisicao(req);
 
@@ -167,7 +165,6 @@ public class ReservaServlet extends HttpServlet {
             return;
         }
 
-        // Conversão de datas vindas do formato do HTML
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         LocalDateTime entrada = LocalDateTime.parse(dataEntradaStr, formatter);
         LocalDateTime saida = LocalDateTime.parse(dataSaidaStr, formatter);
@@ -175,9 +172,7 @@ public class ReservaServlet extends HttpServlet {
         int patioId = Integer.parseInt(patioIdStr);
         int veiculoId = Integer.parseInt(veiculoIdStr);
 
-        // Busca o veículo real para saber o tipo (CARRO/MOTO/CAMINHAO) e assim
-        // procurar uma vaga de verdade disponível nesse pátio — antes isso estava
-        // fixo em vaga.setId(1), o que faria toda reserva cair sempre na mesma vaga.
+
         Veiculo veiculoReal = veiculoDao.buscarPorId(veiculoId);
         if (veiculoReal == null) {
             res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -192,7 +187,6 @@ public class ReservaServlet extends HttpServlet {
             return;
         }
 
-        // Instancia os objetos dependentes mapeando os IDs
         Patio patio = new Patio(patioId, "", 0, 0, 0);
         Veiculo veiculo = new Veiculo();
         veiculo.setId(veiculoId);
@@ -204,7 +198,7 @@ public class ReservaServlet extends HttpServlet {
 
         Reserva novaReserva = new Reserva(0, entrada, saida, valor, null, patio, veiculo, vaga);
 
-        // Executa a procedure {CALL adicionarReserva(?,?,?,?,?,?)} e marca a vaga como RESERVADA
+
         reservaDao.criarReserva(novaReserva);
 
         res.setStatus(HttpServletResponse.SC_OK);
@@ -212,9 +206,7 @@ public class ReservaServlet extends HttpServlet {
                 + String.format("%.2f", valor) + "\"}");
     }
 
-    // 💰 Calcula o valor da reserva conforme o tipo de veículo e a duração:
-    // até 12h de estadia -> cobrança por hora (iniciada); a partir de 12h -> diária fechada,
-    // cobrada por bloco de 24h.
+
     //   CARRO:    R$ 10/hora  | diária R$ 50
     //   MOTO:     R$  5/hora  | diária R$ 30
     //   CAMINHAO: R$ 20/hora  | diária R$ 90
@@ -252,9 +244,9 @@ public class ReservaServlet extends HttpServlet {
         return horasCobradas * valorHora;
     }
 
-    // ❌ 2. Cancelar Reserva Existente
+
     private void executarCancelamento(HttpServletRequest req, HttpServletResponse res) throws IOException {
-        // Captura o ID vindo diretamente dos parâmetros da URL (?acao=cancelar&id=1)
+
         String idStr = req.getParameter("id");
 
         if (idStr == null || idStr.isEmpty()) {
@@ -267,7 +259,7 @@ public class ReservaServlet extends HttpServlet {
         Reserva reservaCancelar = new Reserva();
         reservaCancelar.setId(id);
 
-        // Executa a procedure {CALL CancelarReserva(?)}
+
         reservaDao.cancelarReserva(reservaCancelar);
 
         res.setStatus(HttpServletResponse.SC_OK);

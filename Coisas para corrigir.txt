@@ -1,3 +1,0 @@
-Coisas para corrigir:
-
-Atributo Tipo em Vaga no banco de dados precisa ser um enum com: PEQUENO, MEDIO, GRANDE

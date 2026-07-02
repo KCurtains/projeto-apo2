@@ -23,7 +23,7 @@ public class GerenteServlet extends HttpServlet {
         super();
     }
 
-    // 📥 Carregar dados (Perfil do Gerente)
+    // carrega dados gerente
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
         res.setContentType("application/json");
         res.setCharacterEncoding("UTF-8");
@@ -56,7 +56,7 @@ public class GerenteServlet extends HttpServlet {
         return ((Gerente) session.getAttribute("gerenteLogado")).getId();
     }
 
-    // 📤 Processar formulários e ações (Login e Updates)
+    // login e update
     protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
         res.setContentType("application/json");
         res.setCharacterEncoding("UTF-8");
@@ -92,15 +92,13 @@ public class GerenteServlet extends HttpServlet {
         }
     }
 
-    // 🔐 Lógica de Login do Gerente
     private void executarLogin(HttpServletRequest req, HttpServletResponse res) throws IOException {
         String jsonBody = lerCorpoRequisicao(req);
         
-        // Extraindo os valores do JSON manualmente caso não use Gson:
+        // aqui ainda não estavamos usando Gson
         String emailForm = extrairCampoJson(jsonBody, "email");
         String senhaForm = extrairCampoJson(jsonBody, "senha");
 
-        // CORRIGIDO: nada de credenciais fixas. Sem email/senha => 400.
         if (emailForm.isEmpty() || senhaForm.isEmpty()) {
             res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             res.getWriter().write("{\"sucesso\": false, \"mensagem\": \"E-mail e senha são obrigatórios.\"}");
@@ -177,7 +175,7 @@ public class GerenteServlet extends HttpServlet {
         res.getWriter().write("{\"sucesso\": false, \"mensagem\": \"Gerente não autenticado.\"}");
     }
 
-    // 🛡️ Lê o fluxo de texto (Stream) do JSON enviado via AJAX
+
     private String lerCorpoRequisicao(HttpServletRequest req) throws IOException {
         BufferedReader reader = req.getReader();
         StringBuilder sb = new StringBuilder();
@@ -188,7 +186,6 @@ public class GerenteServlet extends HttpServlet {
         return sb.toString();
     }
 
-    // 🔍 Método utilitário que quebra o galho para pegar valores do JSON sem usar bibliotecas
     private String extrairCampoJson(String json, String campo) {
         try {
             String chave = "\"" + campo + "\"";

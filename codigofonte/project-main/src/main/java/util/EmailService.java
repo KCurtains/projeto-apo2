@@ -26,9 +26,9 @@ public class EmailService {
 
     // Preencha com os dados do SEU inbox (ou use as variáveis de ambiente).
     private static final String USER =
-            System.getenv().getOrDefault("MAILTRAP_USER", "8b28febde085c5");
+            System.getenv().getOrDefault("MAILTRAP_USER", "b4b40c0e30a852");
     private static final String PASS =
-            System.getenv().getOrDefault("MAILTRAP_PASS", "36f4ac001288f7");
+            System.getenv().getOrDefault("MAILTRAP_PASS", "adf7abaa05ea81");
 
     private static final String REMETENTE = "no-reply@easyparking.com";
 

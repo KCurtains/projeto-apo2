@@ -64,11 +64,11 @@ public class MultaServlet extends HttpServlet {
         }
     }
 
-    // 🧾 1. Lógica para aplicar uma nova multa a uma estadia
+    // aplica multa
     private void executarAdicao(HttpServletRequest req, HttpServletResponse res) throws IOException {
         String jsonBody = lerCorpoRequisicao(req);
 
-        // Extraindo os parâmetros do JSON enviado pelo front-end
+        // extrai json
         String valorStr = extrairCampoJson(jsonBody, "valor");
         String motivo = extrairCampoJson(jsonBody, "motivo");
         String estadiaIdStr = extrairCampoJson(jsonBody, "estadiaId");
@@ -82,21 +82,19 @@ public class MultaServlet extends HttpServlet {
         Float valor = Float.parseFloat(valorStr);
         int estadiaId = Integer.parseInt(estadiaIdStr);
 
-        // Instancia a estadia relacionada apenas com o ID para vincular na multa
         RegistroEstadia estadia = new RegistroEstadia();
-        estadia.setId(estadiaId); // Certifique-se de que sua model RegistroEstadia possui o método setId(int)
+        estadia.setId(estadiaId); 
 
-        // Cria o objeto Multa (ID inicial como 0, status padrão inicial PENDENTE)
+        
         Multa novaMulta = new Multa(0, valor, motivo, StatusMultaEnum.NAO_PAGO, estadia);
 
-        // Executa a procedure no banco
         multaDao.adicionarMulta(novaMulta);
 
         res.setStatus(HttpServletResponse.SC_OK);
         res.getWriter().write("{\"sucesso\": true, \"mensagem\": \"Multa aplicada com sucesso!\"}");
     }
 
-    // 🔄 2. Lógica para alterar o status da multa (ex: Mudar de PENDENTE para PAGA)
+    // altera status multa
     private void executarAtualizacaoStatus(HttpServletRequest req, HttpServletResponse res) throws IOException {
         String jsonBody = lerCorpoRequisicao(req);
 
@@ -112,17 +110,14 @@ public class MultaServlet extends HttpServlet {
         int id = Integer.parseInt(idStr);
         StatusMultaEnum novoStatus = StatusMultaEnum.valueOf(novoStatusStr.toUpperCase());
 
-        // Monta o objeto necessário para o update da procedure
         Multa multaAtualizar = new Multa(id, null, null, novoStatus, null);
 
-        // Executa a atualização
         multaDao.updateMulta(multaAtualizar);
 
         res.setStatus(HttpServletResponse.SC_OK);
         res.getWriter().write("{\"sucesso\": true, \"mensagem\": \"Status da multa atualizado!\"}");
     }
 
-    // 🛡️ Lê o corpo JSON da requisição
     private String lerCorpoRequisicao(HttpServletRequest req) throws IOException {
         BufferedReader reader = req.getReader();
         StringBuilder sb = new StringBuilder();
@@ -133,7 +128,6 @@ public class MultaServlet extends HttpServlet {
         return sb.toString();
     }
 
-    // 🔍 Extrai campos do JSON manualmente
     private String extrairCampoJson(String json, String campo) {
         try {
             String chave = "\"" + campo + "\"";

@@ -37,7 +37,7 @@ public class ReclamacaoServlet extends HttpServlet {
         HttpSession session = req.getSession(false);
 
         try {
-            // 🧑‍💼 Gerente: todas as reclamações do sistema
+            // todas as reclamações do sistema
             if ("listarTodas".equals(acao)) {
                 if (session == null || session.getAttribute("gerenteLogado") == null) {
                     res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -48,7 +48,7 @@ public class ReclamacaoServlet extends HttpServlet {
                 return;
             }
 
-            // 🙋 Cliente: só as reclamações que ele mesmo abriu
+            // só as reclamações que o cliente abriu
             if ("listarMinhas".equals(acao) || acao == null) {
                 if (session == null || session.getAttribute("usuarioLogado") == null) {
                     res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -69,7 +69,7 @@ public class ReclamacaoServlet extends HttpServlet {
         }
     }
 
-    // Converte o status interno do enum para o texto exibido nas telas.
+    // converte o enum
     private String statusParaTexto(StatusReclamacaoEnum status) {
         switch (status) {
             case EM_ANALISE: return "Em análise";
@@ -130,7 +130,7 @@ public class ReclamacaoServlet extends HttpServlet {
         }
     }
 
-    // 📩 1. Cliente adicionando uma reclamação
+    // cliente adicionando uma reclamação
     private void executarAdicao(HttpServletRequest req, HttpServletResponse res) throws IOException {
         String jsonBody = lerCorpoRequisicao(req);
 
@@ -145,7 +145,7 @@ public class ReclamacaoServlet extends HttpServlet {
 
         int idEstadia = Integer.parseInt(idEstadiaStr);
 
-        // Instancia a dependência necessária para a model
+
         RegistroEstadia estadia = new RegistroEstadia();
         estadia.setId(idEstadia);
 
@@ -154,7 +154,7 @@ public class ReclamacaoServlet extends HttpServlet {
         try {
             statusInicial = StatusReclamacaoEnum.valueOf("EM_ANALISE");
         } catch(Exception e) {
-            // Caso seu enum use outro padrão texturizado, ele pega o primeiro disponível
+
             statusInicial = StatusReclamacaoEnum.values()[0]; 
         }
 
@@ -166,7 +166,7 @@ public class ReclamacaoServlet extends HttpServlet {
         res.getWriter().write("{\"sucesso\": true, \"mensagem\": \"Reclamação enviada com sucesso!\"}");
     }
 
-    // 🔄 2. Gerente atualizando o status da reclamação
+    // gerente atualizando o status da reclamação
     private void executarAtualizacaoStatus(HttpServletRequest req, HttpServletResponse res) throws IOException {
         String jsonBody = lerCorpoRequisicao(req);
 
@@ -191,7 +191,6 @@ public class ReclamacaoServlet extends HttpServlet {
 
         Reclamacao reclamacaoAtualizar = new Reclamacao(id, null, status, null);
         
-        // Executa a procedure {CALL UpdateReclamacaoStatus(?,?)}
         reclamacaoDao.updateStatusReclamacao(reclamacaoAtualizar);
 
         res.setStatus(HttpServletResponse.SC_OK);

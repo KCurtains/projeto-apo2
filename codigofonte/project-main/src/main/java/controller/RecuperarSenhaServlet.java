@@ -13,12 +13,7 @@ import javax.servlet.http.HttpSession;
 import dao.UsuarioDao;
 import util.EmailService;
 
-/**
- * Recuperação de senha em 3 etapas, casando com o login.jsp:
- *   acao=enviar_codigo   -> valida e-mail, gera um código de 6 dígitos e guarda na sessão
- *   acao=verificar_codigo-> confere o código digitado
- *   acao=nova_senha      -> grava a nova senha (com hash) do e-mail em recuperação
- */
+
 @WebServlet("/RecuperarSenhaServlet")
 public class RecuperarSenhaServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
@@ -57,14 +52,14 @@ public class RecuperarSenhaServlet extends HttpServlet {
         }
 
         Integer id = usuarioDao.buscarIdPorEmail(email);
-        // Por segurança respondemos sucesso mesmo se o e-mail não existir (não revela cadastro).
+        
         if (id != null) {
             String codigo = String.format("%06d", RANDOM.nextInt(1_000_000));
             HttpSession session = req.getSession();
             session.setAttribute("rec_email", email);
             session.setAttribute("rec_codigo", codigo);
 
-            // Envia o código por e-mail (cai no seu inbox do Mailtrap).
+            // Envia o código por e-mail no mailtrap.
             EmailService.enviarCodigo(email, codigo);
         }
 
@@ -90,7 +85,7 @@ public class RecuperarSenhaServlet extends HttpServlet {
         String email = session == null ? null : (String) session.getAttribute("rec_email");
         String codigo = session == null ? null : (String) session.getAttribute("rec_codigo");
 
-        // Só permite trocar se passou pelas etapas anteriores (tem e-mail + código na sessão)
+
         if (email == null || codigo == null) {
             res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             res.getWriter().write("{\"sucesso\": false, \"mensagem\": \"Fluxo de recuperação não iniciado.\"}");

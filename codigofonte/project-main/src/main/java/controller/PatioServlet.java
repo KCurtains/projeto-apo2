@@ -21,7 +21,7 @@ public class PatioServlet extends HttpServlet {
         super();
     }
 
-    // 📥 doGet: Focado em buscar informações (Listar pátios e consultar vagas)
+
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
 
         res.setContentType("application/json");
@@ -29,7 +29,7 @@ public class PatioServlet extends HttpServlet {
 
         String acao = req.getParameter("acao");
 
-        // 1. AÇÃO: LISTAR PÁTIOS
+        //AÇÃO: LISTAR PÁTIOS
         if ("listar".equals(acao)) {
             try {
                 List<Patio> patios = patioDao.listarPatios();
@@ -38,7 +38,7 @@ public class PatioServlet extends HttpServlet {
                 for (int i = 0; i < patios.size(); i++) {
                     Patio p = patios.get(i);
                     
-                    // Tratamento de segurança: remove quebras de linha e escapa aspas
+                    // remove quebras de linha e escapa aspas
                     String enderecoSeguro = p.getEndereco() != null ? 
                             p.getEndereco().replace("\"", "\\\"").replace("\n", " ") : "";
                     
@@ -63,7 +63,7 @@ public class PatioServlet extends HttpServlet {
             return;
         }
 
-        // 2. AÇÃO: VERIFICAR DISPONIBILIDADE
+        // AÇÃO: VERIFICAR DISPONIBILIDADE
         if ("verificarDisponibilidade".equals(acao)) {
             try {
                 String idStr = req.getParameter("id");
@@ -89,8 +89,7 @@ public class PatioServlet extends HttpServlet {
             return;
         }
     }
-
-    // 📤 doPost: Focado em enviar/modificar dados (Adicionar, Atualizar, Remover)
+    
     protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
         res.setContentType("application/json");
         res.setCharacterEncoding("UTF-8");
@@ -98,8 +97,9 @@ public class PatioServlet extends HttpServlet {
         String acao = req.getParameter("acao");
         String jsonBody = lerCorpoRequisicao(req);
 
+        // * talvez fique mais limpo com um switch case. Talvez seja melhor a gente mudar depois.
         try {
-            // 1. AÇÃO: ADICIONAR PÁTIO
+            //AÇÃO: ADICIONAR PÁTIO
             if ("adicionar".equals(acao)) {
                 String endereco = extrairCampoJson(jsonBody, "endereco");
                 int capCarro = Integer.parseInt(extrairCampoJson(jsonBody, "capacidadeCarro"));
@@ -114,7 +114,7 @@ public class PatioServlet extends HttpServlet {
                 return;
             }
 
-            // 2. AÇÃO: ATUALIZAR PÁTIO
+            //AÇÃO: ATUALIZAR PÁTIO
             if ("atualizar".equals(acao)) {
                 int id = Integer.parseInt(extrairCampoJson(jsonBody, "id"));
                 String endereco = extrairCampoJson(jsonBody, "endereco");
@@ -130,7 +130,7 @@ public class PatioServlet extends HttpServlet {
                 return;
             }
 
-            // 3. AÇÃO: REMOVER PÁTIO
+            //AÇÃO: REMOVER PÁTIO
             if ("remover".equals(acao)) {
                 int id = Integer.parseInt(extrairCampoJson(jsonBody, "id"));
 
@@ -149,7 +149,7 @@ public class PatioServlet extends HttpServlet {
         }
     }
 
-    // 🛡️ Método utilitário para ler o fluxo JSON recebido na requisição
+
     private String lerCorpoRequisicao(HttpServletRequest req) throws IOException {
         BufferedReader reader = req.getReader();
         StringBuilder sb = new StringBuilder();
@@ -160,7 +160,7 @@ public class PatioServlet extends HttpServlet {
         return sb.toString();
     }
 
-    // 🔍 Método utilitário para extrair dados do JSON manualmente de forma segura
+
     private String extrairCampoJson(String json, String campo) {
         try {
             String chave = "\"" + campo + "\"";
@@ -174,7 +174,7 @@ public class PatioServlet extends HttpServlet {
             
             int fim;
             if (json.charAt(inicio) == '"') {
-                // Se for texto (tem aspas), procura a aspa final
+                // Se for texto tem aspas, procura a aspa final
                 inicio++; 
                 fim = json.indexOf("\"", inicio);
             } else {

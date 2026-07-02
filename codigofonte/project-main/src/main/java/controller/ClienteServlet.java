@@ -20,14 +20,14 @@ public class ClienteServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
     private ClienteDao clienteDao = new ClienteDao();
 
-    // Recupera o Id do usuário logado; -1 se não houver sessão.
+    // recupera id
     private int idLogado(HttpServletRequest req) {
         HttpSession session = req.getSession(false);
         if (session == null || session.getAttribute("usuarioLogado") == null) return -1;
         return ((Usuario) session.getAttribute("usuarioLogado")).getId();
     }
 
-    // 📥 Carrega os dados do cliente logado (para o perfil.jsp)
+    // carrega dados
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
         res.setContentType("application/json");
         res.setCharacterEncoding("UTF-8");
@@ -47,7 +47,7 @@ public class ClienteServlet extends HttpServlet {
             + "\"telefone\":\"" + escapar(clienteLogado.getTelefone()) + "\"}");
     }
 
-    // 📤 Salvar/alterar
+    // usado para salvar e alterar
     protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
         res.setContentType("application/json");
         res.setCharacterEncoding("UTF-8");
@@ -76,7 +76,7 @@ public class ClienteServlet extends HttpServlet {
         }
     }
 
-    // ➕ Cadastro REAL de cliente (cria Usuario + Cliente via procedure AdicionaCliente)
+
     private void executarCadastro(HttpServletRequest req, HttpServletResponse res) throws IOException {
         String jsonBody = lerCorpoRequisicao(req);
 
@@ -95,9 +95,6 @@ public class ClienteServlet extends HttpServlet {
             return;
         }
 
-        // Reescrito como if/else (em vez de ternário) para evitar um bug do compilador
-        // do Eclipse (ecj) que gerava stackmap frames inconsistentes nessa linha,
-        // causando VerifyError no Tomcat mesmo com o código correto.
         SexoEnum sexo;
         if (sexoStr.isEmpty()) {
             sexo = SexoEnum.MASCULINO;
@@ -114,7 +111,7 @@ public class ClienteServlet extends HttpServlet {
 
         boolean mensalista = "true".equalsIgnoreCase(mensalistaStr);
 
-        // senha PURA — o ClienteDao aplica o hash (regra de hash único no DAO)
+        // o hash é aplicado na DAO
         Cliente novoCliente = new Cliente(0, cpf, nome, sexo, dataNascimento, email, telefone, senha, mensalista, null);
 
         boolean sucesso = clienteDao.cadastrarCliente(novoCliente);
@@ -127,7 +124,7 @@ public class ClienteServlet extends HttpServlet {
         }
     }
 
-    // 📝 Atualiza Nome e Telefone do cliente logado
+
     private void executarAtualizacaoSimples(HttpServletRequest req, HttpServletResponse res) throws IOException {
         int id = idLogado(req);
         if (id == -1) { naoAutenticado(res); return; }
@@ -140,7 +137,7 @@ public class ClienteServlet extends HttpServlet {
         res.getWriter().write("{\"sucesso\": " + ok + ", \"mensagem\": \"" + (ok ? "Perfil atualizado!" : "Nada foi alterado.") + "\"}");
     }
 
-    // 🔒 Atualiza E-mail e Senha do cliente logado
+
     private void executarAtualizacaoComplexo(HttpServletRequest req, HttpServletResponse res) throws IOException {
         int id = idLogado(req);
         if (id == -1) { naoAutenticado(res); return; }
@@ -153,7 +150,7 @@ public class ClienteServlet extends HttpServlet {
         res.getWriter().write("{\"sucesso\": " + ok + ", \"mensagem\": \"" + (ok ? "Credenciais alteradas!" : "Nada foi alterado.") + "\"}");
     }
 
-    // 🔁 Alterna o status de mensalista do cliente LOGADO (não mais id fixo = 1)
+    // altera status de mensalista (não implementado no momento)
     private void executarMudancaMensalista(HttpServletRequest req, HttpServletResponse res) throws IOException {
         int id = idLogado(req);
         if (id == -1) { naoAutenticado(res); return; }

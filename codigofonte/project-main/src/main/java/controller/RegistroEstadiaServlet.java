@@ -16,7 +16,7 @@ import model.RegistroEstadia;
 import model.Reserva;
 import model.Usuario;
 
-@WebServlet("/estadia") // Rota unificada seguindo o padrão do projeto
+@WebServlet("/estadia") 
 public class RegistroEstadiaServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
     private RegistroEstadiaDao estadiaDao = new RegistroEstadiaDao();
@@ -34,7 +34,7 @@ public class RegistroEstadiaServlet extends HttpServlet {
         HttpSession session = req.getSession(false);
 
         try {
-            // 👷 Funcionário: estadias com veículos ainda dentro do pátio
+            // estadias com veículos ainda dentro do pátio
             if ("listarAndamento".equals(acao)) {
                 if (session == null || session.getAttribute("funcionarioLogado") == null) {
                     res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -45,7 +45,7 @@ public class RegistroEstadiaServlet extends HttpServlet {
                 return;
             }
 
-            // 🙋 Cliente: suas próprias estadias (usado para escolher a estadia de uma reclamação)
+            // estadias do próprio cliente
             if ("listarMinhas".equals(acao)) {
                 if (session == null || session.getAttribute("usuarioLogado") == null) {
                     res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -150,7 +150,6 @@ public class RegistroEstadiaServlet extends HttpServlet {
         }
     }
 
-    // 📥 1. Validar Entrada do veículo usando o ID da Reserva
     private void executarValidarEntrada(HttpServletRequest req, HttpServletResponse res) throws IOException {
         String jsonBody = lerCorpoRequisicao(req);
         String reservaIdStr = extrairCampoJson(jsonBody, "reservaId");
@@ -163,21 +162,20 @@ public class RegistroEstadiaServlet extends HttpServlet {
 
         int reservaId = Integer.parseInt(reservaIdStr);
 
-        // Instancia as dependências necessárias da model
         Reserva reserva = new Reserva();
-        reserva.setId(reservaId); // Certifique-se de que sua model Reserva possui setId(int)
+        reserva.setId(reservaId);
 
         RegistroEstadia estadia = new RegistroEstadia();
         estadia.setReserva(reserva);
 
-        // Executa a procedure {CALL ValidarEntrada(?)}
+
         estadiaDao.validarEntrada(estadia);
 
         res.setStatus(HttpServletResponse.SC_OK);
         res.getWriter().write("{\"sucesso\": true, \"mensagem\": \"Entrada do veículo validada com sucesso!\"}");
     }
 
-    // 📤 2. Registrar Saída do veículo usando o ID da Estadia
+
     private void executarRegistrarSaida(HttpServletRequest req, HttpServletResponse res) throws IOException {
         String jsonBody = lerCorpoRequisicao(req);
         String estadiaIdStr = extrairCampoJson(jsonBody, "id"); // Captura o ID enviado pelo AJAX
@@ -193,14 +191,14 @@ public class RegistroEstadiaServlet extends HttpServlet {
         RegistroEstadia estadia = new RegistroEstadia();
         estadia.setId(estadiaId);
 
-        // Executa a procedure {CALL RegistrarSaida(?)}
+
         estadiaDao.registrarSaida(estadia);
 
         res.setStatus(HttpServletResponse.SC_OK);
         res.getWriter().write("{\"sucesso\": true, \"mensagem\": \"Saída registrada com sucesso!\"}");
     }
 
-    // ⏱️ 3. Consultar tempo de permanência acumulado
+    // consultar tempo de permanência acumulado
     private void executarCalcularHoras(HttpServletRequest req, HttpServletResponse res) throws IOException {
         String jsonBody = lerCorpoRequisicao(req);
         String estadiaIdStr = extrairCampoJson(jsonBody, "id");
@@ -215,14 +213,13 @@ public class RegistroEstadiaServlet extends HttpServlet {
         RegistroEstadia estadia = new RegistroEstadia();
         estadia.setId(estadiaId);
 
-        // Executa a procedure com parâmetro OUT
         double horas = estadiaDao.calcularHoras(estadia);
 
         res.setStatus(HttpServletResponse.SC_OK);
         res.getWriter().write("{\"sucesso\": true, \"totalHoras\": " + horas + "}");
     }
 
-    // 💳 4. Concluir processamento financeiro
+    // concluir processamento financeiro
     private void executarProcessarPagamento(HttpServletRequest req, HttpServletResponse res) throws IOException {
         String jsonBody = lerCorpoRequisicao(req);
         String reservaIdStr = extrairCampoJson(jsonBody, "reservaId");
@@ -241,7 +238,6 @@ public class RegistroEstadiaServlet extends HttpServlet {
         RegistroEstadia estadia = new RegistroEstadia();
         estadia.setReserva(reserva);
 
-        // Executa a procedure {CALL ProcessarPagamento(?)}
         estadiaDao.processarPagamento(estadia);
 
         res.setStatus(HttpServletResponse.SC_OK);
@@ -264,14 +260,13 @@ public class RegistroEstadiaServlet extends HttpServlet {
             if (!json.contains(chave)) return "";
             int inicio = json.indexOf(chave) + chave.length();
             
-            // Suporta formatos estruturados com dois pontos ':' comuns em envios JSON
+
             if (json.charAt(inicio) == ':') {
                 inicio++;
             }
             
             inicio = json.indexOf("\"", inicio) + 1;
             
-            // Fallback caso o número seja enviado direto sem aspas no JSON numérico
             if (inicio == 0) {
                 int indexDoisPontos = json.indexOf(":", json.indexOf(chave)) + 1;
                 int fimNum = json.indexOf(",", indexDoisPontos);

@@ -27,14 +27,14 @@ public class FuncionarioServlet extends HttpServlet {
         super();
     }
 
-    // 📥 BUSCA de informações (ex: carregar os dados do funcionário na tela de perfil)
+    // 
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
         res.setContentType("application/json");
         res.setCharacterEncoding("UTF-8");
 
         String acao = req.getParameter("acao");
 
-        // Regra de Segurança: Verifica se há um funcionário logado na sessão
+        // verifica se tem um funcionário logado na sessão
         HttpSession session = req.getSession(false);
         if (session == null || session.getAttribute("funcionarioLogado") == null) {
             res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -81,7 +81,7 @@ public class FuncionarioServlet extends HttpServlet {
         return s == null ? "" : s.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 
-    // 📤 SALVAMENTO e ALTERAÇÃO de dados (ex: salvar edições de perfil e fazer login)
+    // salvarr e alterar dados
     protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
         res.setContentType("application/json");
         res.setCharacterEncoding("UTF-8");
@@ -101,22 +101,22 @@ public class FuncionarioServlet extends HttpServlet {
                     break;
 
                 case "atualizarSimples":
-                    // Processa as alterações diretas de Nome e Número de telefone (perfil do próprio funcionário)
+                    // perfil do funcionario
                     executarAtualizacaoSimples(req, res);
                     break;
 
                 case "atualizarComplexo":
-                    // Processa as atualizações protegidas por senha de Email e Senha (perfil do próprio funcionário)
+
                     executarAtualizacaoComplexo(req, res);
                     break;
 
                 case "atualizarClienteSimples":
-                    // Funcionário edita Nome/Número de um CLIENTE encontrado na pesquisa
+                    // perfil de um cliente
                     executarAtualizacaoClienteSimples(req, res);
                     break;
 
                 case "atualizarClienteComplexo":
-                    // Funcionário edita Email/Senha de um CLIENTE encontrado na pesquisa
+
                     executarAtualizacaoClienteComplexo(req, res);
                     break;
 
@@ -132,18 +132,17 @@ public class FuncionarioServlet extends HttpServlet {
         }
     }
 
-    // Confere se há um funcionário logado; devolve o Id ou -1.
+    // confere se há um funcionário logado; devolve o Id ou -1.
     private int funcionarioLogadoId(HttpServletRequest req) {
         HttpSession session = req.getSession(false);
         if (session == null || session.getAttribute("funcionarioLogado") == null) return -1;
         return ((Funcionario) session.getAttribute("funcionarioLogado")).getId();
     }
 
-    // 🔐 1. Método para processar o login do funcionário
+    // processa login de funcionario
     private void executarLogin(HttpServletRequest req, HttpServletResponse res) throws IOException {
         String jsonBody = lerCorpoRequisicao(req);
 
-        // CORRIGIDO: lê as credenciais REAIS enviadas pelo formulário.
         String emailForm = extrairCampoJson(jsonBody, "email");
         String senhaForm = extrairCampoJson(jsonBody, "senha");
 
@@ -164,7 +163,7 @@ public class FuncionarioServlet extends HttpServlet {
         }
     }
 
-    // 📝 2. Atualiza um campo simples (Nome ou Número) do PRÓPRIO funcionário logado
+    //
     private void executarAtualizacaoSimples(HttpServletRequest req, HttpServletResponse res) throws IOException {
         int id = funcionarioLogadoId(req);
         if (id == -1) { naoAutenticado(res); return; }
@@ -186,7 +185,6 @@ public class FuncionarioServlet extends HttpServlet {
         res.getWriter().write("{\"sucesso\": " + ok + ", \"mensagem\": \"" + (ok ? "Dados atualizados com sucesso!" : "Nada foi alterado.") + "\"}");
     }
 
-    // 🔒 3. Atualiza Email ou Senha do PRÓPRIO funcionário logado, exigindo confirmação do valor atual
     private void executarAtualizacaoComplexo(HttpServletRequest req, HttpServletResponse res) throws IOException {
         int id = funcionarioLogadoId(req);
         if (id == -1) { naoAutenticado(res); return; }
@@ -220,7 +218,6 @@ public class FuncionarioServlet extends HttpServlet {
         res.getWriter().write("{\"sucesso\": " + ok + ", \"mensagem\": \"" + (ok ? "Credenciais alteradas com sucesso!" : "Nada foi alterado.") + "\"}");
     }
 
-    // 📝 4. Funcionário edita um campo simples (Nome/Número) de um CLIENTE (não é o próprio funcionário)
     private void executarAtualizacaoClienteSimples(HttpServletRequest req, HttpServletResponse res) throws IOException {
         if (funcionarioLogadoId(req) == -1) { naoAutenticado(res); return; }
 
@@ -248,8 +245,6 @@ public class FuncionarioServlet extends HttpServlet {
         res.getWriter().write("{\"sucesso\": " + ok + ", \"mensagem\": \"" + (ok ? "Dados do cliente atualizados!" : "Nada foi alterado.") + "\"}");
     }
 
-    // 🔒 5. Funcionário edita Email/Senha de um CLIENTE. Ação administrativa: não exige a
-    // senha atual do cliente (o funcionário já está autenticado e autorizado a isso).
     private void executarAtualizacaoClienteComplexo(HttpServletRequest req, HttpServletResponse res) throws IOException {
         if (funcionarioLogadoId(req) == -1) { naoAutenticado(res); return; }
 
@@ -284,7 +279,7 @@ public class FuncionarioServlet extends HttpServlet {
         res.getWriter().write("{\"sucesso\": false, \"mensagem\": \"Funcionário não autenticado.\"}");
     }
 
-    // 🛡️ Lê o fluxo de texto (Stream) do JSON enviado via AJAX
+    
     private String lerCorpoRequisicao(HttpServletRequest req) throws IOException {
         BufferedReader reader = req.getReader();
         StringBuilder sb = new StringBuilder();
@@ -295,7 +290,7 @@ public class FuncionarioServlet extends HttpServlet {
         return sb.toString();
     }
 
-    // 🔍 Extrai um campo texto do JSON sem depender de biblioteca externa
+    
     private String extrairCampoJson(String json, String campo) {
         try {
             String chave = "\"" + campo + "\"";

@@ -49,7 +49,6 @@ public class RelatorioMensalServlet extends HttpServlet {
             return;
         }
 
-        // Padrão: lista os relatórios em JSON (para a tabela do relatorio.jsp)
         res.setContentType("application/json");
         res.setCharacterEncoding("UTF-8");
         try {
@@ -80,7 +79,7 @@ public class RelatorioMensalServlet extends HttpServlet {
         }
     }
 
-    // Geração manual sob demanda (botão "Gerar relatório do mês" na tela do gerente).
+    // gera relatorio
     protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
         res.setContentType("application/json");
         res.setCharacterEncoding("UTF-8");
@@ -108,7 +107,7 @@ public class RelatorioMensalServlet extends HttpServlet {
         }
     }
 
-    // Monta e envia o PDF do relatório escolhido.
+
     private void baixarPdf(HttpServletRequest req, HttpServletResponse res) throws IOException {
         String idStr = req.getParameter("id");
         if (idStr == null || idStr.isEmpty()) {
