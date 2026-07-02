@@ -12,3 +12,5 @@ Cliente: email: cliente.teste@easyparking.com || senha: 123456
 
 O design do frontend foi planejado inteiramente no figma, e pode ser encontrado no link abaixo:
 https://www.figma.com/design/I6GuYjj2DNztuXF2tLfcXW/Projeto-Estacionamento
+
+O uso de IA foi feito de maneira controlada como ferramenta de pesquisa, ajuda para correção de bugs e também para formatação do relatório.
