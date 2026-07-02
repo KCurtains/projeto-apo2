@@ -667,3 +667,7 @@ SET @ger_id = LAST_INSERT_ID();
 INSERT INTO Funcionario (Id) VALUES (@ger_id);
 INSERT INTO GERENTE (Id) VALUES (@ger_id);
 
+INSERT INTO Usuario (CPF, Nome, Sexo, DataNascimento, Email, Telefone, Senha)
+VALUES ('55562275588', 'Cliente Teste', 'MASCULINO', '1985-03-22',
+        'cliente.teste@easyparking.com', '(11) 90111-0002', SHA2('123456', 256));
+
