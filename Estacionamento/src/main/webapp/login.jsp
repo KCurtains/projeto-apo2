@@ -60,7 +60,7 @@
                     <span class="dot"></span>
                 </div>
 
-                <button type="button" class="btn btn-orange" onclick="changeView('view-cadastro-codigo')">Continuar</button>
+                <button type="button" class="btn btn-orange" onclick="enviarCodigoCadastro()">Continuar</button>
             </div>
         </div>
 
@@ -83,7 +83,7 @@
                     <span class="dot"></span>
                 </div>
 
-                <button type="button" class="btn btn-orange" onclick="changeView('view-cadastro-2')">Continuar</button>
+                <button type="button" class="btn btn-orange" onclick="verificarCodigoCadastro()">Continuar</button>
             </div>
         </div>
 
@@ -223,6 +223,53 @@
             $('#' + viewId).removeClass('d-none');
         }
 
+        // Envia o código de verificação para o e-mail informado (cai no Mailtrap)
+        function enviarCodigoCadastro() {
+            const nome = $('#cadNome').val();
+            const cpf = $('#cadCpf').val();
+            const email = $('#cadEmail').val();
+            if (!nome || !cpf || !email) {
+                alert("Preencha nome, CPF e e-mail para continuar.");
+                return;
+            }
+            $.ajax({
+                url: 'verificacao-cadastro',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ acao: 'enviar', email: email }),
+                dataType: 'json',
+                success: function(response) {
+                    changeView('view-cadastro-codigo');
+                },
+                error: function(err) {
+                    const msg = (err.responseJSON && err.responseJSON.mensagem) ? err.responseJSON.mensagem : "Erro ao enviar o código.";
+                    alert(msg);
+                }
+            });
+        }
+
+        // Confere o código digitado antes de seguir para os dados do veículo
+        function verificarCodigoCadastro() {
+            const codigo = $('#cadCodigo').val();
+            if (!codigo) {
+                alert("Digite o código recebido por e-mail.");
+                return;
+            }
+            $.ajax({
+                url: 'verificacao-cadastro',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ acao: 'verificar', codigo: codigo }),
+                dataType: 'json',
+                success: function(response) {
+                    changeView('view-cadastro-2');
+                },
+                error: function(err) {
+                    alert("Código inválido. Confira o e-mail e tente novamente.");
+                }
+            });
+        }
+
         function realizarLogin() {
             const dadosLogin = {
                 email: $('#loginEmail').val(),
@@ -235,7 +282,7 @@
             }
 
             $.ajax({
-                url: '../login',
+                url: 'login',
                 type: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify(dadosLogin), 
@@ -268,7 +315,8 @@
                 senha: $('#cadSenha').val(),
 
                 sexo: "MASCULINO", 
-                dataNascimento: "2000-01-01" 
+                dataNascimento: "2000-01-01",
+                mensalista: false   // cliente comum por padrão
             };
 
             // Validação simples antes de mandar para o servidor
@@ -285,7 +333,7 @@
 
             // 2. O AJAX envia essa constante "novoUsuario" convertida em texto para o Servlet
             $.ajax({
-                url: 'usuario?acao=cadastrar', 
+                url: 'cliente?acao=cadastrar', 
                 type: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify(novoUsuario), 
@@ -321,9 +369,9 @@
                 success: function(response) {
                     changeView('view-recuperar-2');
                 },
-                error: function() {
-                    alert("Simulação: Código de verificação enviado para " + email);
-                    changeView('view-recuperar-2');
+                error: function(err) {
+                    const msg = (err.responseJSON && err.responseJSON.mensagem) ? err.responseJSON.mensagem : "Erro ao enviar o código.";
+                    alert(msg);
                 }
             });
         }
@@ -345,9 +393,8 @@
                 success: function(response) {
                     changeView('view-recuperar-3');
                 },
-                error: function() {
-                    alert("Simulação: Código validado!");
-                    changeView('view-recuperar-3');
+                error: function(err) {
+                    alert("Código inválido. Tente novamente.");
                 }
             });
         }
@@ -371,9 +418,9 @@
                     alert("Senha redefinida com sucesso!");
                     changeView('view-login');
                 },
-                error: function() {
-                    alert("Simulação: Senha redefinida! Redirecionando para login.");
-                    changeView('view-login');
+                error: function(err) {
+                    const msg = (err.responseJSON && err.responseJSON.mensagem) ? err.responseJSON.mensagem : "Erro ao redefinir a senha.";
+                    alert(msg);
                 }
             });
         }

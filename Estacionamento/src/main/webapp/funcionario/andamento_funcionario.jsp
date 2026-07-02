@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EasyParking - Estadias em Andamento</title>
-    
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../CSS/global.css">
@@ -14,7 +14,7 @@
 <body>
 
     <div class="app-container">
-        
+
         <div class="header-title container-md">
             Estadias em Andamento
         </div>
@@ -44,7 +44,7 @@
                 </div>
                 <div class="modal-body">
                     <input type="hidden" id="infoEstadiaId">
-                    
+
                     <div class="mb-3">
                         <small class="text-muted d-block">Veículo</small>
                         <strong id="infoVeiculo"></strong>
@@ -78,61 +78,66 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
+        let estadiasCarregadas = [];
+
         $(document).ready(function() {
             carregarEstadias();
         });
 
         function carregarEstadias() {
-            const estadiasMock = [
-                { 
-                    id: 1, 
-                    veiculo: "Ford Ka - 2012 (Vermelho)", 
-                    data: "23/04/2026", 
-                    patio: "Rua Cinco, 123 - São Paulo - SP",
-                    horaEntrada: "23/04/2026 às 12:30",
-                    horaSaida: "23/04/2026 às 17:00",
-                    valor: "R$50,00" 
+            $.ajax({
+                url: '../estadia?acao=listarAndamento',
+                type: 'GET',
+                dataType: 'json',
+                success: function(estadias) {
+                    estadiasCarregadas = estadias;
+                    const listDiv = $('#list-state');
+                    listDiv.empty();
+
+                    if(estadias.length === 0) {
+                        $('#empty-state').removeClass('d-none');
+                        $('#list-state').addClass('d-none');
+                    } else {
+                        $('#empty-state').addClass('d-none');
+                        $('#list-state').removeClass('d-none');
+
+                        estadias.forEach(estadia => {
+                            const cardHtml = `
+                                <div class="item-card">
+                                    <div class="item-card-text">
+                                        <small class="text-muted d-block">`+ estadia.veiculo +`</small>
+                                        <strong>`+ estadia.horaEntrada +`</strong>
+                                    </div>
+                                    <div>
+                                        <button class="btn btn-icon-orange btn-sm rounded-3"
+                                            onclick="abrirModalSaida(`+ estadia.id +`)">
+                                            <i class="bi bi-info-circle"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                            listDiv.append(cardHtml);
+                        });
+                    }
+                },
+                error: function(xhr) {
+                    console.error("Erro ao buscar estadias:", xhr.responseText);
+                    $('#empty-state').removeClass('d-none');
+                    $('#list-state').addClass('d-none');
                 }
-            ];
-            
-            const listDiv = $('#list-state');
-            listDiv.empty();
-
-            if(estadiasMock.length === 0) {
-                $('#empty-state').removeClass('d-none');
-                $('#list-state').addClass('d-none');
-            } else {
-                $('#empty-state').addClass('d-none');
-                $('#list-state').removeClass('d-none');
-
-                estadiasMock.forEach(estadia => {
-                    // Usando as classes padronizadas 'item-card' para o design não quebrar no PC
-                    const cardHtml = `
-                        <div class="item-card">
-                            <div class="item-card-text">
-                                <small class="text-muted d-block">`+ estadia.veiculo.split(' (')[0] +`</small>
-                                <strong>`+ estadia.data +`</strong>
-                            </div>
-                            <div>
-                                <button class="btn btn-icon-orange btn-sm rounded-3" 
-                                    onclick="abrirModalSaida(`+ estadia.id +`, '`+ estadia.veiculo +`', '`+ estadia.patio +`', '`+ estadia.horaEntrada +`', '`+ estadia.horaSaida +`', '`+ estadia.valor +`')">
-                                    <i class="bi bi-info-circle"></i>
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                    listDiv.append(cardHtml);
-                });
-            }
+            });
         }
 
-        function abrirModalSaida(id, veiculo, patio, entrada, saida, valor) {
+        function abrirModalSaida(id) {
+            const estadia = estadiasCarregadas.find(e => e.id === id);
+            if (!estadia) return;
+
             $('#infoEstadiaId').val(id);
-            $('#infoVeiculo').text(veiculo);
-            $('#infoPatio').text(patio);
-            $('#infoEntrada').text(entrada);
-            $('#infoSaida').text(saida);
-            $('#infoValor').text(valor);
+            $('#infoVeiculo').text(estadia.veiculo);
+            $('#infoPatio').text(estadia.patio);
+            $('#infoEntrada').text(estadia.horaEntrada);
+            $('#infoSaida').text(estadia.horaSaida);
+            $('#infoValor').text(estadia.valor);
 
             var myModal = new bootstrap.Modal(document.getElementById('modalInfoEstadia'));
             myModal.show();
@@ -150,22 +155,20 @@
                 success: function(response) {
                     alert("Saída registrada com sucesso!");
                     $('#modalInfoEstadia').modal('hide');
-                    carregarEstadias(); 
+                    carregarEstadias();
                 },
-                error: function() {
-                    alert("Simulação: Saída registrada para a estadia ID: " + idEstadia);
-                    $('#modalInfoEstadia').modal('hide');
+                error: function(xhr) {
+                    alert("Não foi possível registrar a saída: " + (xhr.responseJSON ? xhr.responseJSON.mensagem : "erro no servidor."));
                 }
             });
         }
 
-        // DISPARA O AJAX PARA O SEU NOVO MULTASERVLET
         function aplicarMultaManual() {
             const idEstadia = $('#infoEstadiaId').val();
             const motivoDigitado = prompt("Digite o motivo da multa (ex: Perda de ticket, Vaga dupla):");
-            
+
             if (!motivoDigitado) return;
-            
+
             const valorDigitado = prompt("Digite o valor da multa (ex: 50.00):");
             if (!valorDigitado) return;
 
@@ -184,8 +187,8 @@
                 success: function(response) {
                     alert(response.mensagem);
                 },
-                error: function() {
-                    alert("Simulação: Multa de R$ " + valorDigitado + " associada à estadia " + idEstadia);
+                error: function(xhr) {
+                    alert("Não foi possível aplicar a multa: " + (xhr.responseJSON ? xhr.responseJSON.mensagem : "erro no servidor."));
                 }
             });
         }

@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EasyParking - Veículos</title>
-    
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../CSS/global.css">
@@ -14,7 +14,7 @@
 <body>
 
     <div class="app-container">
-        
+
         <div id="view-veiculos" class="h-100 d-flex flex-column w-100">
             <div class="header-title">Veículos</div>
             <div class="content-area" id="list-veiculos"></div>
@@ -41,68 +41,53 @@
     </div>
 
     <div class="modal fade" id="modalAddVeiculo" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title fw-bold">Adicionar Veículo</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body"><form id="form-add-veiculo"><label class="small text-muted">Modelo</label><input type="text" class="form-control" id="addVeiModelo" required><label class="small text-muted">Ano</label><input type="text" class="form-control" id="addVeiAno" required><label class="small text-muted">Placa</label><input type="text" class="form-control" id="addVeiPlaca" required><label class="small text-muted">Cor</label><input type="text" class="form-control" id="addVeiCor" required></form></div><div class="modal-footer pb-4"><button type="button" class="btn btn-orange" onclick="salvarNovoVeiculo()">Adicionar Veículo</button></div></div></div>
+        <div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title fw-bold">Adicionar Veículo</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body"><form id="form-add-veiculo">
+        <label class="small text-muted">Modelo</label><input type="text" class="form-control" id="addVeiModelo" required>
+        <label class="small text-muted">Placa</label><input type="text" class="form-control" id="addVeiPlaca" required>
+        <label class="small text-muted">Cor</label><input type="text" class="form-control" id="addVeiCor" required>
+        <label class="small text-muted">Tipo</label>
+        <select class="form-select" id="addVeiTipo" required>
+            <option value="" disabled selected>Selecione o tipo...</option>
+            <option value="CARRO">Carro</option>
+            <option value="MOTO">Moto</option>
+            <option value="CAMINHAO">Caminhão</option>
+        </select>
+        </form></div><div class="modal-footer pb-4"><button type="button" class="btn btn-orange" onclick="salvarNovoVeiculo()">Adicionar Veículo</button></div></div></div>
     </div>
 
     <div class="modal fade" id="modalEditVeiculo" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title fw-bold">Editar Veículo</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body"><form id="form-edit-veiculo"><input type="hidden" id="editVeiId"><label class="small text-muted">Modelo</label><input type="text" class="form-control" id="editVeiModelo" required><label class="small text-muted">Ano</label><input type="text" class="form-control" id="editVeiAno" required><label class="small text-muted">Placa</label><input type="text" class="form-control" id="editVeiPlaca" readonly><label class="small text-muted">Cor</label><input type="text" class="form-control" id="editVeiCor" required></form></div><div class="modal-footer flex-column pb-4 gap-2"><button type="button" class="btn btn-orange" onclick="atualizarVeiculo()">Salvar</button><button type="button" class="btn btn-red" onclick="removerVeiculo()">Remover Veículo</button></div></div></div>
+        <div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title fw-bold">Editar Veículo</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body"><form id="form-edit-veiculo">
+        <input type="hidden" id="editVeiId">
+        <label class="small text-muted">Modelo</label><input type="text" class="form-control" id="editVeiModelo" required>
+        <label class="small text-muted">Placa</label><input type="text" class="form-control" id="editVeiPlaca" readonly>
+        <label class="small text-muted">Cor</label><input type="text" class="form-control" id="editVeiCor" required>
+        <label class="small text-muted">Tipo</label>
+        <select class="form-select" id="editVeiTipo" required>
+            <option value="CARRO">Carro</option>
+            <option value="MOTO">Moto</option>
+            <option value="CAMINHAO">Caminhão</option>
+        </select>
+        </form></div><div class="modal-footer flex-column pb-4 gap-2"><button type="button" class="btn btn-orange" onclick="atualizarVeiculo()">Salvar</button><button type="button" class="btn btn-red" onclick="removerVeiculo()">Remover Veículo</button></div></div></div>
     </div>
 
     <div class="modal fade" id="modalAddMotorista" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title fw-bold">Adicionar Motorista</h5>
+                    <h5 class="modal-title fw-bold">Autorizar Motorista</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <form id="form-add-motorista">
-                        <label class="small text-muted">Nome Completo</label>
-                        <input type="text" class="form-control" id="addMotNome" required>
-                        
-                        <label class="small text-muted">CPF</label>
+                        <label class="small text-muted">CPF do motorista (já cadastrado no EasyParking)</label>
                         <input type="text" class="form-control" id="addMotCpf" required>
-                        
-                        <label class="small text-muted">Email</label>
-                        <input type="email" class="form-control" id="addMotEmail" required>
-                        
-                        <label class="small text-muted">Número</label>
-                        <input type="text" class="form-control" id="addMotNumero" required>
+                        <p class="text-muted small mt-2" style="font-size: 0.75rem;">
+                            O motorista precisa já ter uma conta de cliente cadastrada no sistema.
+                        </p>
                     </form>
                 </div>
                 <div class="modal-footer pb-4">
-                    <button type="button" class="btn btn-orange" onclick="salvarNovoMotorista()">Adicionar Motorista</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="modalEditMotorista" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title fw-bold">Editar Motorista</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="form-edit-motorista">
-                        <input type="hidden" id="editMotId">
-
-                        <label class="small text-muted">Nome Completo</label>
-                        <input type="text" class="form-control" id="editMotNome" required>
-                        
-                        <label class="small text-muted">CPF</label>
-                        <input type="text" class="form-control" id="editMotCpf" readonly>
-                        
-                        <label class="small text-muted">Email</label>
-                        <input type="email" class="form-control" id="editMotEmail" required>
-                        
-                        <label class="small text-muted">Número</label>
-                        <input type="text" class="form-control" id="editMotNumero" required>
-                    </form>
-                </div>
-                <div class="modal-footer pb-4">
-                    <button type="button" class="btn btn-orange" onclick="atualizarMotorista()">Salvar Alterações</button>
+                    <button type="button" class="btn btn-orange" onclick="salvarNovoMotorista()">Autorizar Motorista</button>
                 </div>
             </div>
         </div>
@@ -131,37 +116,130 @@
         });
 
         function carregarVeiculos() {
-            const veiculosMock = [{ id: 1, modelo: "Ford Ka", ano: "2012", placa: "AVW4G37", cor: "Vermelho" }];
-            const listDiv = $('#list-veiculos');
-            listDiv.empty();
+            $.ajax({
+                url: '../veiculo',
+                type: 'GET',
+                dataType: 'json',
+                success: function(veiculos) {
+                    const listDiv = $('#list-veiculos');
+                    listDiv.empty();
 
-            veiculosMock.forEach(vei => {
-                listDiv.append(`
-                    <div class="item-card">
-                        <div class="item-card-text">
-                            <i class="bi bi-car-front-fill fs-5"></i> `+ vei.modelo +` - `+ vei.placa +`
-                        </div>
-                        <div>
-                            <button class="btn btn-icon-orange btn-sm rounded-3 me-1" onclick="abrirViewMotoristas(`+ vei.id +`)">
-                                <i class="bi bi-people"></i>
-                            </button>
-                            <button class="btn btn-icon-orange btn-sm rounded-3" onclick="abrirModalEditVeiculo(`+ vei.id +`, '`+ vei.modelo +`', '`+ vei.ano +`', '`+ vei.placa +`', '`+ vei.cor +`')">
-                                <i class="bi bi-pencil-square"></i>
-                            </button>
-                        </div>
-                    </div>
-                `);
+                    if (veiculos.length === 0) {
+                        listDiv.append('<p class="text-muted text-center mt-4">Você ainda não tem veículos cadastrados.</p>');
+                        return;
+                    }
+
+                    veiculos.forEach(vei => {
+                        listDiv.append(`
+                            <div class="item-card">
+                                <div class="item-card-text">
+                                    <i class="bi bi-car-front-fill fs-5"></i> `+ vei.modelo +` - `+ vei.placa +`
+                                </div>
+                                <div>
+                                    <button class="btn btn-icon-orange btn-sm rounded-3 me-1" onclick="abrirViewMotoristas(`+ vei.id +`)">
+                                        <i class="bi bi-people"></i>
+                                    </button>
+                                    <button class="btn btn-icon-orange btn-sm rounded-3" onclick='abrirModalEditVeiculo(`+ JSON.stringify(vei) +`)'>
+                                        <i class="bi bi-pencil-square"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        `);
+                    });
+                },
+                error: function(xhr) {
+                    console.error("Erro ao buscar veículos:", xhr.responseText);
+                    $('#list-veiculos').html('<p class="text-muted text-center mt-4">Não foi possível carregar seus veículos.</p>');
+                }
             });
         }
 
         function abrirModalAddVeiculo() { $('#form-add-veiculo')[0].reset(); new bootstrap.Modal(document.getElementById('modalAddVeiculo')).show(); }
-        function salvarNovoVeiculo() { alert("Veículo adicionado!"); $('#modalAddVeiculo').modal('hide'); carregarVeiculos(); }
-        function abrirModalEditVeiculo(id, modelo, ano, placa, cor) {
-            $('#editVeiId').val(id); $('#editVeiModelo').val(modelo); $('#editVeiAno').val(ano); $('#editVeiPlaca').val(placa); $('#editVeiCor').val(cor);
+
+        function salvarNovoVeiculo() {
+            const dadosVeiculo = {
+                modelo: $('#addVeiModelo').val(),
+                placa: $('#addVeiPlaca').val(),
+                cor: $('#addVeiCor').val(),
+                tipoVeiculo: $('#addVeiTipo').val()
+            };
+
+            if (!dadosVeiculo.modelo || !dadosVeiculo.placa || !dadosVeiculo.cor || !dadosVeiculo.tipoVeiculo) {
+                alert("Preencha todos os campos.");
+                return;
+            }
+
+            $.ajax({
+                url: '../veiculo',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(dadosVeiculo),
+                dataType: 'json',
+                success: function(response) {
+                    alert(response.mensagem || "Veículo adicionado!");
+                    $('#modalAddVeiculo').modal('hide');
+                    carregarVeiculos();
+                },
+                error: function(xhr) {
+                    alert("Não foi possível adicionar o veículo: " + (xhr.responseJSON ? (xhr.responseJSON.mensagem || xhr.responseJSON.erro) : "erro no servidor."));
+                }
+            });
+        }
+
+        function abrirModalEditVeiculo(vei) {
+            $('#editVeiId').val(vei.id);
+            $('#editVeiModelo').val(vei.modelo);
+            $('#editVeiPlaca').val(vei.placa);
+            $('#editVeiCor').val(vei.cor);
+            $('#editVeiTipo').val(vei.tipoVeiculo);
             new bootstrap.Modal(document.getElementById('modalEditVeiculo')).show();
         }
-        function atualizarVeiculo() { alert("Veículo atualizado!"); $('#modalEditVeiculo').modal('hide'); carregarVeiculos(); }
-        function removerVeiculo() { alert("Veículo removido!"); $('#modalEditVeiculo').modal('hide'); carregarVeiculos(); }
+
+        function atualizarVeiculo() {
+            const dadosVeiculo = {
+                id: $('#editVeiId').val(),
+                modelo: $('#editVeiModelo').val(),
+                cor: $('#editVeiCor').val(),
+                tipoVeiculo: $('#editVeiTipo').val()
+            };
+
+            $.ajax({
+                url: '../veiculo?acao=atualizar',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(dadosVeiculo),
+                dataType: 'json',
+                success: function(response) {
+                    alert(response.mensagem || "Veículo atualizado!");
+                    $('#modalEditVeiculo').modal('hide');
+                    carregarVeiculos();
+                },
+                error: function(xhr) {
+                    alert("Não foi possível atualizar: " + (xhr.responseJSON ? xhr.responseJSON.mensagem : "erro no servidor."));
+                }
+            });
+        }
+
+        function removerVeiculo() {
+            if (!confirm("Deseja realmente remover este veículo?")) return;
+
+            const id = $('#editVeiId').val();
+            $.ajax({
+                url: '../veiculo?acao=remover',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ id: id }),
+                dataType: 'json',
+                success: function(response) {
+                    alert(response.mensagem || "Veículo removido!");
+                    $('#modalEditVeiculo').modal('hide');
+                    carregarVeiculos();
+                },
+                error: function(xhr) {
+                    alert("Não foi possível remover: " + (xhr.responseJSON ? xhr.responseJSON.mensagem : "erro no servidor."));
+                }
+            });
+        }
 
         function abrirViewMotoristas(idVeiculo) {
             idVeiculoAtual = idVeiculo;
@@ -177,30 +255,39 @@
         }
 
         function carregarMotoristas(idVeiculo) {
-            const motoristasMock = [
-                { id: 1, nome: "Keven Santos", cpf: "123.456.789-00", email: "keven@email.com", numero: "(11) 98765-4321" }
-            ];
+            $.ajax({
+                url: '../veiculo?acao=motoristas&veiculoId=' + idVeiculo,
+                type: 'GET',
+                dataType: 'json',
+                success: function(motoristas) {
+                    const listDiv = $('#list-motoristas');
+                    listDiv.empty();
 
-            const listDiv = $('#list-motoristas');
-            listDiv.empty();
+                    if (motoristas.length === 0) {
+                        listDiv.append('<p class="text-muted text-center mt-4">Nenhum motorista autorizado ainda.</p>');
+                        return;
+                    }
 
-            motoristasMock.forEach(mot => {
-                listDiv.append(`
-                    <div class="item-card">
-                        <div class="item-card-text">
-                            <i class="bi bi-person-fill fs-4"></i> 
-                            `+ mot.nome +`
-                        </div>
-                        <div>
-                            <button class="btn btn-icon-orange btn-sm rounded-3 me-1" onclick="abrirModalEditMotorista(`+ mot.id +`, '`+ mot.nome +`', '`+ mot.cpf +`', '`+ mot.email +`', '`+ mot.numero +`')">
-                                <i class="bi bi-pencil-square"></i>
-                            </button>
-                            <button class="btn btn-icon-red btn-sm rounded-3" onclick="removerMotorista(`+ mot.id +`)">
-                                <i class="bi bi-slash-circle"></i>
-                            </button>
-                        </div>
-                    </div>
-                `);
+                    motoristas.forEach(mot => {
+                        listDiv.append(`
+                            <div class="item-card">
+                                <div class="item-card-text">
+                                    <i class="bi bi-person-fill fs-4"></i>
+                                    `+ mot.nome +`
+                                </div>
+                                <div>
+                                    <button class="btn btn-icon-red btn-sm rounded-3" onclick="removerMotorista(`+ mot.id +`)">
+                                        <i class="bi bi-slash-circle"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        `);
+                    });
+                },
+                error: function(xhr) {
+                    console.error("Erro ao buscar motoristas:", xhr.responseText);
+                    $('#list-motoristas').html('<p class="text-muted text-center mt-4">Não foi possível carregar os motoristas.</p>');
+                }
             });
         }
 
@@ -211,26 +298,27 @@
         }
 
         function salvarNovoMotorista() {
-            alert("Motorista adicionado ao veículo!");
-            $('#modalAddMotorista').modal('hide');
-            carregarMotoristas(idVeiculoAtual);
-        }
+            const cpf = $('#addMotCpf').val();
+            if (!cpf) {
+                alert("Informe o CPF do motorista.");
+                return;
+            }
 
-        function abrirModalEditMotorista(id, nome, cpf, email, numero) {
-            $('#editMotId').val(id);
-            $('#editMotNome').val(nome);
-            $('#editMotCpf').val(cpf);
-            $('#editMotEmail').val(email);
-            $('#editMotNumero').val(numero);
-            
-            var myModal = new bootstrap.Modal(document.getElementById('modalEditMotorista'));
-            myModal.show();
-        }
-
-        function atualizarMotorista() {
-            alert("Dados do motorista atualizados!");
-            $('#modalEditMotorista').modal('hide');
-            carregarMotoristas(idVeiculoAtual);
+            $.ajax({
+                url: '../veiculo?acao=adicionarMotorista',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ veiculoId: idVeiculoAtual, cpf: cpf }),
+                dataType: 'json',
+                success: function(response) {
+                    alert(response.mensagem);
+                    $('#modalAddMotorista').modal('hide');
+                    carregarMotoristas(idVeiculoAtual);
+                },
+                error: function(xhr) {
+                    alert("Não foi possível autorizar o motorista: " + (xhr.responseJSON ? xhr.responseJSON.mensagem : "erro no servidor."));
+                }
+            });
         }
 
         let idMotoristaParaExcluir = null;
@@ -242,11 +330,22 @@
         }
 
         function efetivarExclusaoMotorista() {
-            alert("Motorista " + idMotoristaParaExcluir + " removido com sucesso!");
-            
-            $('#modalConfirmarExclusaoMotorista').modal('hide');
-            
-            carregarMotoristas(idVeiculoAtual);
+            $.ajax({
+                url: '../veiculo?acao=removerMotorista',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ veiculoId: idVeiculoAtual, clienteId: idMotoristaParaExcluir }),
+                dataType: 'json',
+                success: function(response) {
+                    alert(response.mensagem || "Motorista removido com sucesso!");
+                    $('#modalConfirmarExclusaoMotorista').modal('hide');
+                    carregarMotoristas(idVeiculoAtual);
+                },
+                error: function(xhr) {
+                    alert("Não foi possível remover o motorista: " + (xhr.responseJSON ? xhr.responseJSON.mensagem : "erro no servidor."));
+                    $('#modalConfirmarExclusaoMotorista').modal('hide');
+                }
+            });
         }
     </script>
 </body>

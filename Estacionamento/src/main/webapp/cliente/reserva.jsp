@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EasyParking - Reservas</title>
-    
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../CSS/global.css">
@@ -14,7 +14,7 @@
 <body>
 
     <div class="app-container">
-        
+
         <div class="header-title container">
             Suas Reservas
         </div>
@@ -49,14 +49,12 @@
                         <label class="small text-muted">Pátio</label>
                         <select class="form-select mb-2" id="resPátio" required>
                             <option value="" disabled selected>Selecione o pátio...</option>
-                            <option value="1">Rua Cinco, 123 - São Paulo</option>
                         </select>
                         <div class="text-end text-success small d-none mb-2" id="status-vagas" style="font-weight: bold;">Disponível</div>
 
                         <label class="small text-muted">Veículo</label>
                         <select class="form-select mb-2" id="resVeiculo" required>
                             <option value="" disabled selected>Selecione seu veículo...</option>
-                            <option value="1">Ford Ka (AVW4G37)</option>
                         </select>
 
                         <div class="row">
@@ -74,7 +72,7 @@
 
                         <div class="text-center mt-3">
                             <span class="fw-bold">Valor Total: </span>
-                            <span class="valor-total-text" id="resValorTotal">R$ 50,00</span>
+                            <span class="valor-total-text" id="resValorTotal">R$ 0,00</span>
                         </div>
                     </form>
                 </div>
@@ -93,11 +91,11 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="mb-3"><small class="text-muted d-block">Veículo</small><strong id="infoVeiculo">Ford Ka - 2012</strong></div>
-                    <div class="mb-3"><small class="text-muted d-block">Pátio</small><strong id="infoPatio">Rua Cinco, 123</strong></div>
-                    <div class="mb-3"><small class="text-muted d-block">Horário de Entrada</small><strong id="infoEntrada">23/04/2026 às 12:30</strong></div>
-                    <div class="mb-3"><small class="text-muted d-block">Horário de Saída</small><strong id="infoSaida">23/04/2026 às 17:00</strong></div>
-                    <div class="mb-4"><small class="text-muted d-block">Valor Calculado</small><strong id="infoValor">R$50,00</strong></div>
+                    <div class="mb-3"><small class="text-muted d-block">Veículo</small><strong id="infoVeiculo"></strong></div>
+                    <div class="mb-3"><small class="text-muted d-block">Pátio</small><strong id="infoPatio"></strong></div>
+                    <div class="mb-3"><small class="text-muted d-block">Horário de Entrada</small><strong id="infoEntrada"></strong></div>
+                    <div class="mb-3"><small class="text-muted d-block">Horário de Saída</small><strong id="infoSaida"></strong></div>
+                    <div class="mb-4"><small class="text-muted d-block">Valor Calculado</small><strong id="infoValor"></strong></div>
                 </div>
                 <div class="modal-footer pb-4">
                     <button type="button" class="btn btn-red" onclick="abrirModalCancelar()">Cancelar Reserva</button>
@@ -123,35 +121,83 @@
 
     <script>
         let idReservaSelecionada = null;
+        let reservasCarregadas = [];
+        let veiculosCarregados = [];
+
+        // Tarifas usadas só para a ESTIMATIVA mostrada na tela — o valor final e
+        // oficial é sempre calculado e conferido pelo servidor.
+        const TARIFAS = {
+            CARRO:    { hora: 10, diaria: 50 },
+            MOTO:     { hora: 5,  diaria: 30 },
+            CAMINHAO: { hora: 20, diaria: 90 }
+        };
 
         $(document).ready(function() {
             carregarReservas();
 
-            // 🔍 INTEGRAÇÃO DINÂMICA: ESCUTA A MUDANÇA DO SELETORES DE PÁTIO (GET)
-            $('#resPátio').on('change', function() {
-                const idPatio = $(this).val();
-                
-                $.ajax({
-                    url: '../patio?acao=verificarDisponibilidade&id=' + idPatio + '&tipoVeiculo=CARRO',
-                    type: 'GET',
-                    dataType: 'json',
-                    success: function(response) {
-                        if(response.vagasDisponiveis > 0) {
-                            $('#status-vagas').text("Disponível (" + response.vagasDisponiveis + " vagas)")
-                                             .removeClass('d-none text-danger').addClass('text-success');
-                        } else {
-                            $('#status-vagas').text("Pátio Lotado para Carros")
-                                             .removeClass('d-none text-success').addClass('text-danger');
-                        }
-                    },
-                    error: function() {
-                        // Resposta visual simulada para testes locais
-                        $('#status-vagas').text("Disponível (Simulação backend)")
-                                         .removeClass('d-none text-danger').addClass('text-success');
-                    }
-                });
+            // 🔍 Reconsulta a disponibilidade de vagas sempre que o pátio OU o
+            // veículo mudam, usando o TIPO do veículo selecionado (antes estava
+            // fixo em "CARRO", então mostrava vaga errada para moto/caminhão).
+            $('#resPátio, #resVeiculo').on('change', function() {
+                verificarDisponibilidade();
+                atualizarValorEstimado();
+            });
+            $('#resDataEntrada, #resHoraEntrada, #resDataSaida, #resHoraSaida').on('change', function() {
+                atualizarValorEstimado();
             });
         });
+
+        function verificarDisponibilidade() {
+            const idPatio = $('#resPátio').val();
+            const idVeiculo = $('#resVeiculo').val();
+            if (!idPatio || !idVeiculo) return;
+
+            const veiculo = veiculosCarregados.find(v => String(v.id) === String(idVeiculo));
+            const tipo = veiculo ? veiculo.tipoVeiculo : 'CARRO';
+
+            $.ajax({
+                url: '../patio?acao=verificarDisponibilidade&id=' + idPatio + '&tipoVeiculo=' + tipo,
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    if(response.vagasDisponiveis > 0) {
+                        $('#status-vagas').text("Disponível (" + response.vagasDisponiveis + " vagas)")
+                                         .removeClass('d-none text-danger').addClass('text-success');
+                    } else {
+                        $('#status-vagas').text("Pátio lotado para esse tipo de veículo")
+                                         .removeClass('d-none text-success').addClass('text-danger');
+                    }
+                },
+                error: function() {
+                    $('#status-vagas').addClass('d-none');
+                }
+            });
+        }
+
+        function atualizarValorEstimado() {
+            const idVeiculo = $('#resVeiculo').val();
+            const veiculo = veiculosCarregados.find(v => String(v.id) === String(idVeiculo));
+            const dataEntrada = $('#resDataEntrada').val(), horaEntrada = $('#resHoraEntrada').val();
+            const dataSaida = $('#resDataSaida').val(), horaSaida = $('#resHoraSaida').val();
+
+            if (!veiculo || !dataEntrada || !horaEntrada || !dataSaida || !horaSaida) return;
+
+            const entrada = new Date(dataEntrada + 'T' + horaEntrada);
+            const saida = new Date(dataSaida + 'T' + horaSaida);
+            const horas = (saida - entrada) / (1000 * 60 * 60);
+            if (isNaN(horas) || horas <= 0) return;
+
+            const tarifa = TARIFAS[veiculo.tipoVeiculo] || TARIFAS.CARRO;
+            let valor;
+            if (horas >= 12) {
+                const dias = Math.ceil(horas / 24);
+                valor = dias * tarifa.diaria;
+            } else {
+                valor = Math.ceil(horas) * tarifa.hora;
+            }
+
+            $('#resValorTotal').text('R$ ' + valor.toFixed(2).replace('.', ','));
+        }
 
         function carregarReservas() {
             $.ajax({
@@ -159,6 +205,7 @@
                 type: 'GET',
                 dataType: 'json',
                 success: function(response) {
+                    reservasCarregadas = response;
                     renderizarLista(response); // Passa os dados reais para a sua função de renderizar
                 },
                 error: function(xhr) {
@@ -201,7 +248,36 @@
                 });
             }
         }
-        
+
+        function popularSelects() {
+            $.ajax({
+                url: '../patio?acao=listar',
+                type: 'GET',
+                dataType: 'json',
+                success: function(patios) {
+                    const select = $('#resPátio');
+                    select.find('option:not(:first)').remove();
+                    patios.forEach(p => {
+                        select.append('<option value="' + p.id + '">' + p.nome + '</option>');
+                    });
+                }
+            });
+
+            $.ajax({
+                url: '../veiculo',
+                type: 'GET',
+                dataType: 'json',
+                success: function(veiculos) {
+                    veiculosCarregados = veiculos;
+                    const select = $('#resVeiculo');
+                    select.find('option:not(:first)').remove();
+                    veiculos.forEach(v => {
+                        select.append('<option value="' + v.id + '">' + v.modelo + ' (' + v.placa + ')</option>');
+                    });
+                }
+            });
+        }
+
         function salvarReserva() {
 
             const dadosReserva = {
@@ -218,7 +294,7 @@
             }
 
             $.ajax({
-                url: '../reserva?acao=criar', 
+                url: '../reserva?acao=criar',
                 type: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify(dadosReserva),
@@ -228,14 +304,12 @@
                     $('#modalCriarReserva').modal('hide');
                     carregarReservas();
                 },
-                error: function() {
-
-                    alert("Simulação: Reserva enviada para o banco de dados!");
-                    $('#modalCriarReserva').modal('hide');
+                error: function(xhr) {
+                    alert("Não foi possível criar a reserva: " + (xhr.responseJSON ? xhr.responseJSON.mensagem : "erro no servidor."));
                 }
             });
         }
-        
+
         function efetivarCancelamento() {
             if (!idReservaSelecionada) {
                 alert("Nenhuma reserva foi selecionada para exclusão.");
@@ -243,26 +317,42 @@
             }
 
             $.ajax({
-                url: '../reserva?acao=cancelar&id=' + idReservaSelecionada, 
+                url: '../reserva?acao=cancelar&id=' + idReservaSelecionada,
                 type: 'POST',
                 dataType: 'json',
                 success: function(response) {
                     alert(response.mensagem);
                     $('#modalConfirmarCancelamento').modal('hide');
-                    $('#modalInfoReserva').modal('hide'); 
-                    carregarReservas(); 
-                },
-                error: function() {
-
-                    alert("Simulação: Reserva " + idReservaSelecionada + " cancelada com sucesso!");
-                    $('#modalConfirmarCancelamento').modal('hide');
                     $('#modalInfoReserva').modal('hide');
+                    carregarReservas();
+                },
+                error: function(xhr) {
+                    alert("Não foi possível cancelar: " + (xhr.responseJSON ? xhr.responseJSON.mensagem : "erro no servidor."));
+                    $('#modalConfirmarCancelamento').modal('hide');
                 }
             });
         }
 
-        function abrirModalCriar() { new bootstrap.Modal(document.getElementById('modalCriarReserva')).show(); }
-        function abrirModalInfo(id) { idReservaSelecionada = id; new bootstrap.Modal(document.getElementById('modalInfoReserva')).show(); }
+        function abrirModalCriar() {
+            $('#form-nova-reserva')[0].reset();
+            $('#status-vagas').addClass('d-none');
+            $('#resValorTotal').text('R$ 0,00');
+            popularSelects();
+            new bootstrap.Modal(document.getElementById('modalCriarReserva')).show();
+        }
+
+        function abrirModalInfo(id) {
+            idReservaSelecionada = id;
+            const res = reservasCarregadas.find(r => r.id === id);
+            if (res) {
+                $('#infoVeiculo').text(res.veiculo);
+                $('#infoPatio').text(res.patio);
+                $('#infoEntrada').text(res.data);
+                $('#infoSaida').text('-');
+                $('#infoValor').text(res.valor);
+            }
+            new bootstrap.Modal(document.getElementById('modalInfoReserva')).show();
+        }
         function abrirModalCancelar(id) { if(id) idReservaSelecionada = id; new bootstrap.Modal(document.getElementById('modalConfirmarCancelamento')).show(); }
     </script>
 </body>

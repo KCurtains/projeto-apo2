@@ -1,11 +1,12 @@
 CREATE DATABASE estacionamento_db;
 USE estacionamento_db;
 
-
+SET GLOBAL event_scheduler = ON;
 -- TABELAS
 
 CREATE TABLE Patio(
     Id INT PRIMARY KEY AUTO_INCREMENT,
+    Endereco VARCHAR(200),
     CapacidadeCarro INT NOT NULL,
     CapacidadeMoto INT NOT NULL,
     CapacidadeCaminhao INT NOT NULL
@@ -74,8 +75,8 @@ CREATE TABLE VeiculoCliente(
 
 CREATE TABLE Reserva(
     Id INT PRIMARY KEY AUTO_INCREMENT,
-    HorarioEntrada TIMESTAMP NOT NULL,
-    HorarioSaida TIMESTAMP NOT NULL,
+    HorarioEntrada DATETIME NOT NULL,
+    HorarioSaida DATETIME NOT NULL,
     Valor DECIMAL(10,2),
     StatusReserva ENUM('ATIVA', 'CANCELADA', 'FINALIZADA', 'EXPIRADA') NOT NULL,
     PatioId INT,
@@ -89,8 +90,8 @@ CREATE TABLE Reserva(
 
 CREATE TABLE RegistroEstadia(
     Id INT PRIMARY KEY AUTO_INCREMENT,
-    HorarioEntradaReal TIMESTAMP NOT NULL,
-    HorarioSaidaReal TIMESTAMP DEFAULT NULL,
+    HorarioEntradaReal DATETIME NOT NULL,
+    HorarioSaidaReal DATETIME DEFAULT NULL,
     ReservaId INT,
     
     CONSTRAINT fk_reserva_r FOREIGN KEY (ReservaId) REFERENCES Reserva(Id)
@@ -100,7 +101,7 @@ CREATE TABLE Multa(
     Id INT PRIMARY KEY AUTO_INCREMENT,
     Valor DECIMAL(10,2) NOT NULL,
     Motivo VARCHAR(500) NOT NULL,
-    StatusMulta ENUM('NAO-PAGO', 'PAGO', 'RETIRADO'),
+    StatusMulta ENUM('NAO_PAGO', 'PAGO', 'RETIRADO'),
     EstadiaRelacionada INT,
     
     CONSTRAINT fk_estadia_m FOREIGN KEY (EstadiaRelacionada) REFERENCES RegistroEstadia(Id)
@@ -117,7 +118,7 @@ CREATE TABLE Reclamacao(
 
 CREATE TABLE RelatorioMensal(
     Id INT PRIMARY KEY AUTO_INCREMENT,
-    HorarioGerado TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    HorarioGerado DATETIME DEFAULT CURRENT_TIMESTAMP,
     Ganhos DECIMAL(10,2) NOT NULL,
     QntdClientesCarro INT NOT NULL,
     QntdClientesMoto INT NOT NULL,
@@ -131,13 +132,13 @@ CREATE TABLE ValidacaoToken (
     id INT PRIMARY KEY AUTO_INCREMENT,
     cliente_id INT NOT NULL,
     token VARCHAR(255) NOT NULL UNIQUE,
-    data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    data_expiracao TIMESTAMP NOT NULL,
+    data_criacao DATETIME DEFAULT CURRENT_TIMESTAMP,
+    data_expiracao DATETIME NOT NULL,
     utilizado BOOLEAN DEFAULT FALSE,
 
     CONSTRAINT fk_validacao_cliente
         FOREIGN KEY (cliente_id)
-        REFERENCES cliente(cliente_id)
+        REFERENCES Cliente(id)
         ON DELETE CASCADE
 );
 ALTER TABLE cliente
@@ -215,7 +216,6 @@ BEGIN
     INNER JOIN Veiculo V ON R.VeiculoId = V.Id
     WHERE V.MotoristaPrincipal = p_clienteId;
 END //
-
 
 -- PROCEDURES - RECLAMAÇÕES
 
@@ -480,27 +480,30 @@ END //
 
 -- Adiciona um novo pátio definindo sua capacidade para cada tipo de veículo
 CREATE PROCEDURE AdicionarPatio(
-    IN p_CapCarro INT, 
-    IN p_CapMoto INT, 
+    IN p_Endereco VARCHAR(200),
+    IN p_CapCarro INT,
+    IN p_CapMoto INT,
     IN p_CapCaminhao INT
 )
 BEGIN
-    INSERT INTO Patio(CapacidadeCarro, CapacidadeMoto, CapacidadeCaminhao) 
-    VALUES (p_CapCarro, p_CapMoto, p_CapCaminhao);
+    INSERT INTO Patio(Endereco, CapacidadeCarro, CapacidadeMoto, CapacidadeCaminhao)
+    VALUES (p_Endereco, p_CapCarro, p_CapMoto, p_CapCaminhao);
 END //
 
 -- Altera as capacidades de um pátio existente
 CREATE PROCEDURE AtualizarPatio(
-    IN p_Id INT, 
-    IN p_CapCarro INT, 
-    IN p_CapMoto INT, 
+    IN p_Id INT,
+    IN p_Endereco VARCHAR(200),
+    IN p_CapCarro INT,
+    IN p_CapMoto INT,
     IN p_CapCaminhao INT
 )
 BEGIN
-    UPDATE Patio 
-    SET CapacidadeCarro = p_CapCarro, 
-        CapacidadeMoto = p_CapMoto, 
-        CapacidadeCaminhao = p_CapCaminhao 
+    UPDATE Patio
+    SET Endereco = p_Endereco,
+        CapacidadeCarro = p_CapCarro,
+        CapacidadeMoto = p_CapMoto,
+        CapacidadeCaminhao = p_CapCaminhao
     WHERE Id = p_Id;
 END //
 
@@ -510,6 +513,54 @@ CREATE PROCEDURE RemoverPatio(
 )
 BEGIN
     DELETE FROM Patio WHERE Id = p_Id;
+END //
+
+CREATE PROCEDURE SincronizarVagasPatio(IN p_PatioId INT)
+BEGIN
+    DECLARE capCarro, capMoto, capCaminhao INT DEFAULT 0;
+    DECLARE atualCarro, atualMoto, atualCaminhao INT DEFAULT 0;
+
+    SELECT CapacidadeCarro, CapacidadeMoto, CapacidadeCaminhao
+      INTO capCarro, capMoto, capCaminhao
+      FROM Patio WHERE Id = p_PatioId;
+
+    SELECT COUNT(*) INTO atualCarro FROM Vaga WHERE PatioId = p_PatioId AND Tipo = 'CARRO';
+    SELECT COUNT(*) INTO atualMoto FROM Vaga WHERE PatioId = p_PatioId AND Tipo = 'MOTO';
+    SELECT COUNT(*) INTO atualCaminhao FROM Vaga WHERE PatioId = p_PatioId AND Tipo = 'CAMINHAO';
+
+    WHILE atualCarro < capCarro DO
+        INSERT INTO Vaga(Tipo, StatusVaga, PatioId) VALUES ('CARRO', 'DISPONIVEL', p_PatioId);
+        SET atualCarro = atualCarro + 1;
+    END WHILE;
+
+    WHILE atualMoto < capMoto DO
+        INSERT INTO Vaga(Tipo, StatusVaga, PatioId) VALUES ('MOTO', 'DISPONIVEL', p_PatioId);
+        SET atualMoto = atualMoto + 1;
+    END WHILE;
+
+    WHILE atualCaminhao < capCaminhao DO
+        INSERT INTO Vaga(Tipo, StatusVaga, PatioId) VALUES ('CAMINHAO', 'DISPONIVEL', p_PatioId);
+        SET atualCaminhao = atualCaminhao + 1;
+    END WHILE;
+END //
+
+-- Roda a sincronização acima para TODOS os pátios já cadastrados.
+CREATE PROCEDURE SincronizarTodosPatios()
+BEGIN
+    DECLARE done INT DEFAULT 0;
+    DECLARE pid INT;
+    DECLARE cur CURSOR FOR SELECT Id FROM Patio;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+
+    OPEN cur;
+    read_loop: LOOP
+        FETCH cur INTO pid;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+        CALL SincronizarVagasPatio(pid);
+    END LOOP;
+    CLOSE cur;
 END //
 
 -- Verifica e retorna a quantidade de vagas que estão 'DISPONIVEL' em um pátio para um tipo de veículo específico
@@ -551,4 +602,68 @@ BEGIN
     VALUES (CURRENT_TIMESTAMP, DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 1 MONTH), p_Valor, 'ATIVA', p_PatioId, p_VeiculoId, p_VagaId);
 END //
 
+CREATE PROCEDURE CriarValidacaoToken(
+    IN p_ClienteId INT,
+    IN p_Token VARCHAR(255),
+    IN p_DataExpiracao DATETIME
+)
+BEGIN
+    INSERT INTO ValidacaoToken(cliente_id, token, data_expiracao)
+    VALUES (p_ClienteId, p_Token, p_DataExpiracao);
+END //
+
+-- Busca um token que ainda seja válido (não utilizado e não expirado)
+CREATE PROCEDURE BuscarValidacaoTokenValido(
+    IN p_Token VARCHAR(255)
+)
+BEGIN
+    SELECT * FROM ValidacaoToken
+    WHERE token = p_Token
+      AND utilizado = FALSE
+      AND data_expiracao > NOW();
+END //
+
+-- Marca um token como já utilizado
+CREATE PROCEDURE MarcarTokenUtilizado(
+    IN p_Token VARCHAR(255)
+)
+BEGIN
+    UPDATE ValidacaoToken SET utilizado = TRUE WHERE token = p_Token;
+END //
+
+-- Marca o e-mail do cliente como verificado
+CREATE PROCEDURE MarcarEmailVerificado(
+    IN p_ClienteId INT
+)
+BEGIN
+    UPDATE Cliente SET email_verificado = TRUE WHERE Id = p_ClienteId;
+END //
+
+CREATE EVENT ev_relatorio_mensal
+ON SCHEDULE EVERY 1 DAY
+STARTS (TIMESTAMP(CURRENT_DATE) + INTERVAL 23 HOUR + INTERVAL 55 MINUTE)
+DO
+BEGIN
+    IF DAY(CURRENT_DATE + INTERVAL 1 DAY) = 1 THEN
+        CALL CriarRelatorioMensal();
+    END IF;
+END //
+
 DELIMITER ;
+
+CALL SincronizarTodosPatios();
+
+INSERT INTO Usuario (CPF, Nome, Sexo, DataNascimento, Email, Telefone, Senha)
+VALUES ('11122233344', 'Funcionario Teste', 'MASCULINO', '1995-05-10',
+        'funcionario.teste@easyparking.com', '(11) 90000-0001', SHA2('123456', 256));
+SET @func_id = LAST_INSERT_ID();
+INSERT INTO Funcionario (Id) VALUES (@func_id);
+
+-- Gerente de teste (todo Gerente também precisa ser Funcionário, conforme seu schema)
+INSERT INTO Usuario (CPF, Nome, Sexo, DataNascimento, Email, Telefone, Senha)
+VALUES ('55566677788', 'Gerente Teste', 'FEMININO', '1990-02-20',
+        'gerente.teste@easyparking.com', '(11) 90000-0002', SHA2('123456', 256));
+SET @ger_id = LAST_INSERT_ID();
+INSERT INTO Funcionario (Id) VALUES (@ger_id);
+INSERT INTO GERENTE (Id) VALUES (@ger_id);
+

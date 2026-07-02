@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EasyParking - Gestão de Reclamações</title>
-    
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../CSS/global.css">
@@ -15,13 +15,13 @@
 <body>
 
     <div class="app-container">
-        
+
         <div class="header-title container-md">
             Reclamações
         </div>
 
         <div class="content-area container-md">
-            
+
             <div id="empty-state" class="text-center text-muted mt-5 d-none">
                 <p>Não há reclamações no momento.</p>
             </div>
@@ -55,20 +55,20 @@
                         <strong id="infoRecVeiculo"></strong>
                     </div>
                     <div class="mb-3">
-                        <small class="text-muted d-block">Data da Reserva</small>
+                        <small class="text-muted d-block">Data da Estadia</small>
                         <strong id="infoRecData"></strong>
                     </div>
                     <div class="mb-3">
                         <small class="text-muted d-block">Reclamação</small>
                         <strong id="infoRecTexto"></strong>
                     </div>
-                    
+
                     <div class="mb-4 mt-4">
                         <label class="small text-muted d-block mb-1">Status</label>
                         <select class="form-select" id="editRecStatus">
                             <option value="Em análise">Em análise</option>
-                            <option value="Resolvido">Resolvido</option>
-                            <option value="Não resolvido">Não resolvido</option>
+                            <option value="Resolvida">Resolvida</option>
+                            <option value="Recusada">Recusada</option>
                         </select>
                     </div>
                 </div>
@@ -83,65 +83,62 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
+        let reclamacoesCarregadas = [];
+
         $(document).ready(function() {
             carregarReclamacoes();
         });
 
         function carregarReclamacoes() {
-            const reclamacoesMock = [
-                { 
-                    id: 1, 
-                    veiculo: "Ford Ka 2012 Vermelho - AVW4G37", 
-                    data: "23/04/2026", 
-                    texto: "O pátio estava sem luz e tive dificuldade de encontrar meu veículo.",
-                    status: "Em análise" 
+            $.ajax({
+                url: '../reclamacao?acao=listarTodas',
+                type: 'GET',
+                dataType: 'json',
+                success: function(reclamacoes) {
+                    reclamacoesCarregadas = reclamacoes;
+                    const listDiv = $('#list-state');
+                    listDiv.empty();
+
+                    if(reclamacoes.length === 0) {
+                        $('#empty-state').removeClass('d-none');
+                        $('#list-state').addClass('d-none');
+                    } else {
+                        $('#empty-state').addClass('d-none');
+                        $('#list-state').removeClass('d-none');
+
+                        reclamacoes.forEach(rec => {
+                            let classeCor = 'status-analise';
+                            if(rec.status === 'Resolvida') classeCor = 'status-resolvido';
+                            else if(rec.status === 'Recusada') classeCor = 'status-nao-resolvido';
+
+                            const cardHtml = `
+                                <div class="reclamacao-card">
+                                    <div>
+                                        <strong class="d-block">`+ rec.data +`</strong>
+                                        <span class="badge-status `+ classeCor +`">`+ rec.status +`</span>
+                                    </div>
+                                    <div>
+                                        <button class="btn btn-icon-orange btn-sm rounded-3" onclick="abrirModalAtualizar(`+ rec.id +`)">
+                                            <i class="bi bi-info-circle"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                            listDiv.append(cardHtml);
+                        });
+                    }
                 },
-                { 
-                    id: 2, 
-                    veiculo: "Honda Civic 2020 Prata - ABC1D23", 
-                    data: "20/04/2026", 
-                    texto: "Fui cobrado duas vezes no cartão de crédito.",
-                    status: "Não resolvido" 
+                error: function(xhr) {
+                    console.error("Erro ao buscar reclamações:", xhr.responseText);
+                    $('#empty-state').removeClass('d-none');
+                    $('#list-state').addClass('d-none');
                 }
-            ];
-            
-            const listDiv = $('#list-state');
-            listDiv.empty();
-
-            if(reclamacoesMock.length === 0) {
-                $('#empty-state').removeClass('d-none');
-                $('#list-state').addClass('d-none');
-            } else {
-                $('#empty-state').addClass('d-none');
-                $('#list-state').removeClass('d-none');
-
-                reclamacoesMock.forEach(rec => {
-                    let classeCor = 'status-analise';
-                    if(rec.status === 'Resolvido') classeCor = 'status-resolvido';
-                    else if(rec.status === 'Não resolvido') classeCor = 'status-nao-resolvido';
-
-                    const recDataString = encodeURIComponent(JSON.stringify(rec));
-
-                    const cardHtml = `
-                        <div class="reclamacao-card">
-                            <div>
-                                <strong class="d-block">`+ rec.data +`</strong>
-                                <span class="badge-status `+ classeCor +`">`+ rec.status +`</span>
-                            </div>
-                            <div>
-                                <button class="btn btn-icon-orange btn-sm rounded-3" onclick="abrirModalAtualizar('`+ recDataString +`')">
-                                    <i class="bi bi-info-circle"></i>
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                    listDiv.append(cardHtml);
-                });
-            }
+            });
         }
 
-        function abrirModalAtualizar(recDataEncoded) {
-            const rec = JSON.parse(decodeURIComponent(recDataEncoded));
+        function abrirModalAtualizar(id) {
+            const rec = reclamacoesCarregadas.find(r => r.id === id);
+            if (!rec) return;
 
             $('#infoRecId').val(rec.id);
             $('#infoRecVeiculo').text(rec.veiculo);
@@ -166,12 +163,10 @@
                 success: function(response) {
                     alert("Status atualizado com sucesso!");
                     $('#modalAtualizarReclamacao').modal('hide');
-                    carregarReclamacoes(); 
-                },
-                error: function() {
-                    alert("Simulação: Status da reclamação " + idRec + " atualizado para '" + novoStatus + "'.");
-                    $('#modalAtualizarReclamacao').modal('hide');
                     carregarReclamacoes();
+                },
+                error: function(xhr) {
+                    alert("Não foi possível atualizar o status: " + (xhr.responseJSON ? xhr.responseJSON.mensagem : "erro no servidor."));
                 }
             });
         }

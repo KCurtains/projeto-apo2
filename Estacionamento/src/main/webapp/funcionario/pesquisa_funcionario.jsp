@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EasyParking - Gestão de Clientes</title>
-    
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../CSS/global.css">
@@ -15,7 +15,7 @@
 <body>
 
     <div class="app-container">
-        
+
         <div id="view-consulta" class="d-flex flex-column h-100">
             <div class="header-title container-md">Clientes</div>
 
@@ -68,10 +68,9 @@
                         <i class="bi bi-pencil-square ms-2 edit-icon" onclick="toggleEdit('email')"></i>
                     </div>
                     <div class="edit-mode d-none mt-2">
-                        <input type="email" class="form-control-edit mb-2" id="input-email-atual" placeholder="Email atual">
                         <input type="email" class="form-control-edit mb-2" id="input-email-novo" placeholder="Novo email">
                         <input type="email" class="form-control-edit mb-3" id="input-email-confirma" placeholder="Confirmar novo email">
-                        
+
                         <div class="d-flex gap-2">
                             <button class="btn btn-orange-rounded btn-sm w-50 py-2" onclick="salvarComplexo('email')">Salvar</button>
                             <button class="btn btn-red-rounded btn-sm w-50 py-2" onclick="cancelarEdit('email')">Cancelar</button>
@@ -98,10 +97,9 @@
                         <i class="bi bi-pencil-square ms-2 edit-icon" onclick="toggleEdit('senha')"></i>
                     </div>
                     <div class="edit-mode d-none mt-2">
-                        <input type="password" class="form-control-edit mb-2" id="input-senha-atual" placeholder="Senha atual do cliente (se necessário)">
                         <input type="password" class="form-control-edit mb-2" id="input-senha-nova" placeholder="Nova senha">
                         <input type="password" class="form-control-edit mb-3" id="input-senha-confirma" placeholder="Confirmar nova senha">
-                        
+
                         <div class="d-flex gap-2">
                             <button class="btn btn-orange-rounded btn-sm w-50 py-2" onclick="salvarComplexo('senha')">Salvar</button>
                             <button class="btn btn-red-rounded btn-sm w-50 py-2" onclick="cancelarEdit('senha')">Cancelar</button>
@@ -127,25 +125,21 @@
 
         function pesquisarCliente() {
             const termo = $('#input-pesquisa').val();
-            
+
             if(!termo) {
                 alert("Digite um nome para pesquisar.");
                 return;
             }
 
             $.ajax({
-                url: 'PesquisarClienteServlet?termo=' + termo,
+                url: '../funcionario?acao=pesquisarCliente&termo=' + encodeURIComponent(termo),
                 type: 'GET',
                 dataType: 'json',
-                success: function(clientes) { renderizarResultados(clientes); }
+                success: function(clientes) { renderizarResultados(clientes); },
+                error: function(xhr) {
+                    alert("Não foi possível pesquisar: " + (xhr.responseJSON ? xhr.responseJSON.mensagem : "erro no servidor."));
+                }
             });
-
-
-            // Mock simulando o retorno do banco
-            const resultadosMock = [
-                { id: 1, nome: "Fabio Henrique Baptista", cpf: "489******-23", email: "nooba*****9@gmail.com", numero: "(11) 94002-8922" }
-            ];
-            renderizarResultados(resultadosMock);
         }
 
         function renderizarResultados(clientes) {
@@ -215,11 +209,11 @@
         function salvarSimples(campo) {
             const idCli = $('#clienteIdEditando').val();
             const novoValor = $('#input-' + campo).val();
-            
+
             if(!novoValor) return;
 
             $.ajax({
-                url: 'AtualizarClienteServlet',
+                url: '../funcionario?acao=atualizarClienteSimples',
                 type: 'POST',
                 data: JSON.stringify({ id: idCli, campo: campo, valor: novoValor }),
                 contentType: 'application/json',
@@ -227,17 +221,14 @@
                     $('#val-' + campo).text(novoValor);
                     cancelarEdit(campo);
                 },
-                error: function() {
-                    alert("Simulação: " + campo + " do cliente ID " + idCli + " atualizado.");
-                    $('#val-' + campo).text(novoValor);
-                    cancelarEdit(campo);
+                error: function(xhr) {
+                    alert("Não foi possível atualizar: " + (xhr.responseJSON ? xhr.responseJSON.mensagem : "erro no servidor."));
                 }
             });
         }
 
         function salvarComplexo(campo) {
             const idCli = $('#clienteIdEditando').val();
-            const atual = $('#input-' + campo + '-atual').val();
             const novo = $('#input-' + campo + '-novo').val();
             const confirma = $('#input-' + campo + '-confirma').val();
 
@@ -247,9 +238,9 @@
             }
 
             $.ajax({
-                url: 'AtualizarClienteCredenciaisServlet',
+                url: '../funcionario?acao=atualizarClienteComplexo',
                 type: 'POST',
-                data: JSON.stringify({ id: idCli, tipo: campo, valorAtual: atual, novoValor: novo }),
+                data: JSON.stringify({ id: idCli, tipo: campo, novoValor: novo }),
                 contentType: 'application/json',
                 success: function() {
                     alert(campo + " atualizado com sucesso!");
@@ -257,11 +248,8 @@
                     $('#block-' + campo).find('input').val('');
                     cancelarEdit(campo);
                 },
-                error: function() {
-                    alert("Simulação: " + campo + " do cliente ID " + idCli + " atualizado.");
-                    if(campo === 'email') $('#val-email').text(novo);
-                    $('#block-' + campo).find('input').val('');
-                    cancelarEdit(campo);
+                error: function(xhr) {
+                    alert("Não foi possível atualizar: " + (xhr.responseJSON ? xhr.responseJSON.mensagem : "erro no servidor."));
                 }
             });
         }

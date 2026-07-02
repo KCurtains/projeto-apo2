@@ -2,27 +2,110 @@ package controller;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import dao.RegistroEstadiaDao;
 import model.RegistroEstadia;
 import model.Reserva;
+import model.Usuario;
 
 @WebServlet("/estadia") // Rota unificada seguindo o padrão do projeto
 public class RegistroEstadiaServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
     private RegistroEstadiaDao estadiaDao = new RegistroEstadiaDao();
+    private static final DateTimeFormatter FMT_DATAHORA = DateTimeFormatter.ofPattern("dd/MM/yyyy 'às' HH:mm");
 
     public RegistroEstadiaServlet() {
         super();
     }
 
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
-        res.getWriter().append("Served at: ").append(req.getContextPath());
+        res.setContentType("application/json");
+        res.setCharacterEncoding("UTF-8");
+
+        String acao = req.getParameter("acao");
+        HttpSession session = req.getSession(false);
+
+        try {
+            // 👷 Funcionário: estadias com veículos ainda dentro do pátio
+            if ("listarAndamento".equals(acao)) {
+                if (session == null || session.getAttribute("funcionarioLogado") == null) {
+                    res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    res.getWriter().write("{\"sucesso\": false, \"mensagem\": \"Acesso restrito a funcionários.\"}");
+                    return;
+                }
+                res.getWriter().write(montarJsonAndamento(estadiaDao.listarEmAndamento()));
+                return;
+            }
+
+            // 🙋 Cliente: suas próprias estadias (usado para escolher a estadia de uma reclamação)
+            if ("listarMinhas".equals(acao)) {
+                if (session == null || session.getAttribute("usuarioLogado") == null) {
+                    res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    res.getWriter().write("{\"sucesso\": false, \"mensagem\": \"Usuário não autenticado.\"}");
+                    return;
+                }
+                int clienteId = ((Usuario) session.getAttribute("usuarioLogado")).getId();
+                res.getWriter().write(montarJsonMinhas(estadiaDao.listarEstadiasPorCliente(clienteId)));
+                return;
+            }
+
+            res.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            res.getWriter().write("{\"sucesso\": false, \"mensagem\": \"Ação desconhecida.\"}");
+        } catch (Exception e) {
+            e.printStackTrace();
+            res.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            res.getWriter().write("{\"sucesso\": false, \"mensagem\": \"Erro interno no servidor.\"}");
+        }
+    }
+
+    private String montarJsonAndamento(List<RegistroEstadia> lista) {
+        StringBuilder json = new StringBuilder("[");
+        for (int i = 0; i < lista.size(); i++) {
+            RegistroEstadia e = lista.get(i);
+            Reserva r = e.getReserva();
+            String veiculo = r.getVeiculo().getModelo() + " (" + r.getVeiculo().getCor() + ") - " + r.getVeiculo().getPlaca();
+            json.append("{")
+                .append("\"id\": ").append(e.getId()).append(",")
+                .append("\"veiculo\": \"").append(veiculo.replace("\"", "\\\"")).append("\",")
+                .append("\"patio\": \"").append(escapar(r.getPatio().getEndereco())).append("\",")
+                .append("\"horaEntrada\": \"").append(e.getHorarioEntradaReal().format(FMT_DATAHORA)).append("\",")
+                .append("\"horaSaida\": \"-\",")
+                .append("\"valor\": \"R$ ").append(String.format("%.2f", r.getValor())).append("\"")
+                .append("}");
+            if (i < lista.size() - 1) json.append(",");
+        }
+        json.append("]");
+        return json.toString();
+    }
+
+    private String montarJsonMinhas(List<RegistroEstadia> lista) {
+        DateTimeFormatter fmtData = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        StringBuilder json = new StringBuilder("[");
+        for (int i = 0; i < lista.size(); i++) {
+            RegistroEstadia e = lista.get(i);
+            Reserva r = e.getReserva();
+            String veiculo = r.getVeiculo().getModelo() + " (" + r.getVeiculo().getPlaca() + ")";
+            json.append("{")
+                .append("\"id\": ").append(e.getId()).append(",")
+                .append("\"veiculo\": \"").append(veiculo.replace("\"", "\\\"")).append("\",")
+                .append("\"data\": \"").append(e.getHorarioEntradaReal().format(fmtData)).append("\"")
+                .append("}");
+            if (i < lista.size() - 1) json.append(",");
+        }
+        json.append("]");
+        return json.toString();
+    }
+
+    private String escapar(String s) {
+        return s == null ? "" : s.replace("\"", "\\\"");
     }
 
     protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {

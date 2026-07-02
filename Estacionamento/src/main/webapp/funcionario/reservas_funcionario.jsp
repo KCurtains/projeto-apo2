@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EasyParking - Gestão de Reservas</title>
-    
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../CSS/global.css">
@@ -15,13 +15,13 @@
 <body>
 
     <div class="app-container">
-        
+
         <div class="header-title container-md" id="titulo-data">
-            Reservas - 23/04/2026
+            Reservas de Hoje
         </div>
 
         <div class="content-area container-md">
-            
+
             <div id="empty-state" class="text-center text-muted mt-5 d-none">
                 <p>Não há reservas marcadas para hoje.</p>
             </div>
@@ -49,7 +49,7 @@
                 </div>
                 <div class="modal-body">
                     <input type="hidden" id="infoReservaId">
-                    
+
                     <div class="mb-3">
                         <small class="text-muted d-block">Veículo</small>
                         <strong id="infoVeiculo"></strong>
@@ -82,63 +82,69 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
+        let reservasCarregadas = [];
+
         $(document).ready(function() {
             carregarReservasDoDia();
         });
 
         function carregarReservasDoDia() {
-            const reservasMock = [
-                { 
-                    id: 1, 
-                    veiculo: "Ford Ka - 2012 (Vermelho)", 
-                    data: "23/04/2026", 
-                    patio: "Rua Cinco, 123 - São Paulo - SP",
-                    horaEntrada: "23/04/2026 às 12:30",
-                    horaSaida: "23/04/2026 às 17:00",
-                    valor: "R$50,00" 
+            $.ajax({
+                url: '../reserva?acao=listarDoDia',
+                type: 'GET',
+                dataType: 'json',
+                success: function(reservas) {
+                    reservasCarregadas = reservas;
+                    const listDiv = $('#list-state');
+                    listDiv.empty();
+
+                    if(reservas.length === 0) {
+                        $('#empty-state').removeClass('d-none');
+                        $('#list-state').addClass('d-none');
+                    } else {
+                        $('#empty-state').addClass('d-none');
+                        $('#list-state').removeClass('d-none');
+
+                        reservas.forEach(res => {
+                            const cardHtml = `
+                                <div class="reserva-card d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <small class="text-muted d-block">`+ res.veiculo +`</small>
+                                        <strong>`+ res.horaEntrada +`</strong>
+                                    </div>
+                                    <div>
+                                        <button class="btn btn-icon-orange btn-sm rounded-3 me-1"
+                                            onclick="abrirModalInfo(`+ res.id +`)">
+                                            <i class="bi bi-info-circle"></i>
+                                        </button>
+                                        <button class="btn btn-icon-red btn-sm rounded-3" onclick="cancelarOuBloquearReserva(`+ res.id +`)">
+                                            <i class="bi bi-slash-circle"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                            listDiv.append(cardHtml);
+                        });
+                    }
+                },
+                error: function(xhr) {
+                    console.error("Erro ao buscar as reservas do dia:", xhr.responseText);
+                    $('#empty-state').removeClass('d-none');
+                    $('#list-state').addClass('d-none');
                 }
-            ];
-            
-            const listDiv = $('#list-state');
-            listDiv.empty();
-
-            if(reservasMock.length === 0) {
-                $('#empty-state').removeClass('d-none');
-                $('#list-state').addClass('d-none');
-            } else {
-                $('#empty-state').addClass('d-none');
-                $('#list-state').removeClass('d-none');
-
-                reservasMock.forEach(res => {
-                    const cardHtml = `
-                        <div class="reserva-card d-flex justify-content-between align-items-center">
-                            <div>
-                                <small class="text-muted d-block">`+ res.veiculo.split(' (')[0] +`</small>
-                                <strong>`+ res.data +`</strong>
-                            </div>
-                            <div>
-                                <button class="btn btn-icon-orange btn-sm rounded-3 me-1" 
-                                    onclick="abrirModalInfo(`+ res.id +`, '`+ res.veiculo +`', '`+ res.patio +`', '`+ res.horaEntrada +`', '`+ res.horaSaida +`', '`+ res.valor +`')">
-                                    <i class="bi bi-info-circle"></i>
-                                </button>
-                                <button class="btn btn-icon-red btn-sm rounded-3" onclick="cancelarOuBloquearReserva(`+ res.id +`)">
-                                    <i class="bi bi-slash-circle"></i>
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                    listDiv.append(cardHtml);
-                });
-            }
+            });
         }
 
-        function abrirModalInfo(id, veiculo, patio, entrada, saida, valor) {
+        function abrirModalInfo(id) {
+            const res = reservasCarregadas.find(r => r.id === id);
+            if (!res) return;
+
             $('#infoReservaId').val(id);
-            $('#infoVeiculo').text(veiculo);
-            $('#infoPatio').text(patio);
-            $('#infoEntrada').text(entrada);
-            $('#infoSaida').text(saida);
-            $('#infoValor').text(valor);
+            $('#infoVeiculo').text(res.veiculo);
+            $('#infoPatio').text(res.patio);
+            $('#infoEntrada').text(res.horaEntrada);
+            $('#infoSaida').text(res.horaSaida);
+            $('#infoValor').text(res.valor);
 
             var myModal = new bootstrap.Modal(document.getElementById('modalInfoReservaFuncionario'));
             myModal.show();
@@ -148,19 +154,18 @@
             const idReserva = $('#infoReservaId').val();
 
             $.ajax({
-                url: 'RegistrarEntradaServlet', 
+                url: '../estadia?acao=validarEntrada',
                 type: 'POST',
                 contentType: 'application/json',
-                data: JSON.stringify({ id: idReserva, acao: 'registrar_entrada' }),
+                data: JSON.stringify({ reservaId: idReserva }),
                 dataType: 'json',
                 success: function(response) {
                     alert("Entrada registrada com sucesso!");
                     $('#modalInfoReservaFuncionario').modal('hide');
                     carregarReservasDoDia();
                 },
-                error: function() {
-                    alert("Simulação: Entrada registrada para a reserva ID: " + idReserva);
-                    $('#modalInfoReservaFuncionario').modal('hide');
+                error: function(xhr) {
+                    alert("Não foi possível registrar a entrada: " + (xhr.responseJSON ? xhr.responseJSON.mensagem : "erro no servidor."));
                 }
             });
         }
@@ -168,15 +173,15 @@
         function cancelarOuBloquearReserva(id) {
             if(confirm("Deseja realmente cancelar/bloquear esta reserva?")) {
                 $.ajax({
-                    url: 'GerenciarReservaServlet',
+                    url: '../reserva?acao=cancelar&id=' + id,
                     type: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify({ id: id, acao: 'cancelar' }),
+                    dataType: 'json',
                     success: function() {
                         alert("Reserva atualizada!");
+                        carregarReservasDoDia();
                     },
-                    error: function() {
-                        alert("Simulação: Ação executada na reserva " + id);
+                    error: function(xhr) {
+                        alert("Não foi possível atualizar a reserva: " + (xhr.responseJSON ? xhr.responseJSON.mensagem : "erro no servidor."));
                     }
                 });
             }

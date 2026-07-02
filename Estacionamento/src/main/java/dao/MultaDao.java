@@ -18,7 +18,7 @@ public class MultaDao {
 
 				stmt.setFloat(1, multa.getValor());
 				stmt.setString(2, multa.getMotivo());
-				stmt.setFloat(3, multa.getEstadiaRelacionada().getId());
+				stmt.setInt(3, multa.getEstadiaRelacionada().getId()); // Id é inteiro, não float
 				stmt.execute();
 				
 	        } catch (SQLException e) {
