@@ -14,9 +14,8 @@ import util.dbConnection;
 public class ValidacaoDao {
 
     public String gerarToken(int clienteId) {
-        // reaproveita o UsuarioDao.gerarHash para transformar um UUID em token seguro
         String token = UsuarioDao.gerarHash(UUID.randomUUID().toString() + System.nanoTime());
-        LocalDateTime expira = LocalDateTime.now().plusHours(24); // validade de 24h
+        LocalDateTime expira = LocalDateTime.now().plusHours(24); 
 
         String sql = "{CALL CriarValidacaoToken(?,?,?)}";
 

@@ -20,7 +20,6 @@
         </div>
 
         <div class="content-area container-md">
-            <!-- Botão para o gerente gerar o relatório do mês corrente sob demanda -->
             <button class="btn btn-orange w-100 mb-3" onclick="gerarRelatorio()">
                 <i class="bi bi-file-earmark-bar-graph"></i> Gerar relatório do mês
             </button>
@@ -48,7 +47,7 @@
             carregarRelatorios();
         });
 
-        // Busca a lista REAL de relatórios no backend (/relatorio?acao=listar)
+        // Busca a lista REAL de relatórios no backend
         function carregarRelatorios() {
             $.ajax({
                 url: '../relatorio?acao=listar',
@@ -101,7 +100,7 @@
             });
         }
 
-        // Baixa o PDF: basta redirecionar para o endpoint que devolve o arquivo
+        // Baixa o PDF: redireciona para o endpoint que devolve o arquivo
         function baixarRelatorio(idRelatorio) {
             window.location.href = '../relatorio?acao=baixarPdf&id=' + idRelatorio;
         }

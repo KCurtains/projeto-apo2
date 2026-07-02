@@ -33,8 +33,6 @@ public class FuncionarioServlet extends HttpServlet {
         res.setCharacterEncoding("UTF-8");
 
         String acao = req.getParameter("acao");
-
-        // verifica se tem um funcionário logado na sessão
         HttpSession session = req.getSession(false);
         if (session == null || session.getAttribute("funcionarioLogado") == null) {
             res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -81,7 +79,6 @@ public class FuncionarioServlet extends HttpServlet {
         return s == null ? "" : s.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 
-    // salvarr e alterar dados
     protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
         res.setContentType("application/json");
         res.setCharacterEncoding("UTF-8");
@@ -101,7 +98,6 @@ public class FuncionarioServlet extends HttpServlet {
                     break;
 
                 case "atualizarSimples":
-                    // perfil do funcionario
                     executarAtualizacaoSimples(req, res);
                     break;
 
@@ -111,7 +107,6 @@ public class FuncionarioServlet extends HttpServlet {
                     break;
 
                 case "atualizarClienteSimples":
-                    // perfil de um cliente
                     executarAtualizacaoClienteSimples(req, res);
                     break;
 

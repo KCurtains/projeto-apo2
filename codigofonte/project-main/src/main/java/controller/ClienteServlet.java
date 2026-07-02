@@ -111,7 +111,6 @@ public class ClienteServlet extends HttpServlet {
 
         boolean mensalista = "true".equalsIgnoreCase(mensalistaStr);
 
-        // o hash é aplicado na DAO
         Cliente novoCliente = new Cliente(0, cpf, nome, sexo, dataNascimento, email, telefone, senha, mensalista, null);
 
         boolean sucesso = clienteDao.cadastrarCliente(novoCliente);

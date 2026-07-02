@@ -31,9 +31,6 @@ public class ReservaDao {
 				stmt.execute();
 			}
 
-			// CORRIGIDO: a vaga escolhida ficava sempre DISPONIVEL mesmo depois de
-			// reservada, então a próxima reserva podia cair na mesma vaga (double
-			// booking). Agora marcamos a vaga como RESERVADA assim que ela é usada.
 			try (PreparedStatement stmt = conn.prepareStatement(
 					"UPDATE Vaga SET StatusVaga = 'RESERVADA' WHERE Id = ?")) {
 				stmt.setInt(1, reserva.getVaga().getId());
@@ -54,8 +51,7 @@ public class ReservaDao {
 				stmt.setInt(1, reserva.getId());
 				stmt.execute();
 			}
-
-			// Libera a vaga associada a essa reserva para poder ser usada de novo.
+			
 			try (PreparedStatement stmt = conn.prepareStatement(
 					"UPDATE Vaga v INNER JOIN Reserva r ON v.Id = r.VagaId "
 					+ "SET v.StatusVaga = 'DISPONIVEL' WHERE r.Id = ?")) {
@@ -83,30 +79,25 @@ public class ReservaDao {
 	        }
 	}
 	
-	// Adicione ou substitua na sua ReservaDao
+	
     public List<Reserva> listarReservasPorCliente(int clienteId) {
         List<Reserva> lista = new ArrayList<>();
-        // Chama a procedure que retorna as reservas vinculadas aos veículos do cliente
         String sql = "{CALL GetReservasCliente(?)}";
         
         try (Connection conn = dbConnection.getConnection();
              CallableStatement stmt = conn.prepareCall(sql)) {
 
             stmt.setInt(1, clienteId);
-            ResultSet rs = stmt.executeQuery(); // Executa e captura o resultado
+            ResultSet rs = stmt.executeQuery(); 
 
             while (rs.next()) {
                 Reserva r = new Reserva();
                 r.setId(rs.getInt("Id"));
-                // Converte DATETIME do banco para LocalDateTime do Java
                 r.setHorarioEntrada(rs.getTimestamp("HorarioEntrada").toLocalDateTime());
                 r.setHorarioSaida(rs.getTimestamp("HorarioSaida").toLocalDateTime());
                 r.setValor(rs.getFloat("Valor"));
                 r.setStatusReserva(StatusReservaEnum.valueOf(rs.getString("StatusReserva")));
 
-                // Instancia as dependências apenas com o ID para compor o objeto.
-                // (Para o nome real do Pátio e Veículo, seria necessário um JOIN no BD,
-                // mas usaremos IDs por agora para fazer funcionar).
                 Patio p = new Patio(clienteId, "", 3, 0, 0); 
                 p.setId(rs.getInt("PatioId"));
                 r.setPatio(p);
@@ -123,8 +114,6 @@ public class ReservaDao {
         return lista;
     }
 
-    // Lista as reservas ATIVAS marcadas para hoje, com dados do veículo e do pátio já
-    // carregados (usada na tela "Reservas" do funcionário).
     public List<Reserva> listarReservasDoDia() {
         List<Reserva> lista = new ArrayList<>();
         String sql = "SELECT r.Id, r.HorarioEntrada, r.HorarioSaida, r.Valor, r.StatusReserva, "

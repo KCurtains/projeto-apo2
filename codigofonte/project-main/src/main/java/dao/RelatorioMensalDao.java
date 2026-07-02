@@ -13,8 +13,6 @@ import util.dbConnection;
 
 public class RelatorioMensalDao {
 
-    // Dispara a procedure que consolida os dados do mês atual e grava um novo RelatorioMensal.
-    // Usada tanto pelo botão "Gerar agora" do gerente quanto pela automação (EVENT do MySQL).
     public void gerarRelatorioMesAtual() {
         String sql = "{CALL CriarRelatorioMensal()}";
         try (Connection conn = dbConnection.getConnection();
@@ -63,7 +61,7 @@ public class RelatorioMensalDao {
             rs.getFloat("Ganhos"),
             rs.getInt("QntdClientesCarro"),
             rs.getInt("QntdClientesMoto"),
-            rs.getInt("QntClientesCaminhao"), // ATENÇÃO: no banco a coluna está sem o 'd' (typo do DDL)
+            rs.getInt("QntClientesCaminhao"), 
             rs.getFloat("TempoMedioEstadia"),
             rs.getInt("ReclamacoesRegistradas"),
             rs.getInt("MultasAplicadas")

@@ -34,8 +34,6 @@ public class ValidacaoServlet extends HttpServlet {
         try {
             Usuario usuario = (Usuario) session.getAttribute("usuarioLogado");
             String token = validacaoDao.gerarToken(usuario.getId());
-
-            // TODO: enviar e-mail com link tipo /validacao?token=... em vez de retornar o token direto
             out.print("{\"mensagem\": \"Token gerado com sucesso!\", \"token\": \"" + token + "\"}");
 
         } catch (Exception e) {
@@ -44,7 +42,7 @@ public class ValidacaoServlet extends HttpServlet {
         }
     }
 
-    // Valida um token recebido por link de e-mail (?token=xxxx)
+    // Valida um token recebido por link de e-mail
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
         res.setContentType("application/json");
         res.setCharacterEncoding("UTF-8");

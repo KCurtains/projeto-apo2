@@ -10,7 +10,6 @@ import util.dbConnection;
 
 public class GerenteDao {
 
-	// CORRIGIDO: dados do gerente vivem em Usuario. GERENTE só guarda o Id.
 	public Gerente validarLogin(String email, String senha) {
 		String sql = "SELECT u.Id, u.CPF, u.Nome, u.Email, u.Telefone "
 				   + "FROM Usuario u INNER JOIN GERENTE g ON u.Id = g.Id "
