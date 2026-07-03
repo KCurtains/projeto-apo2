@@ -1,5 +1,13 @@
 # Projeto APO2 
 
+Alunos responsáveis pelo projeto:
+
+  - Keven Pereira dos Santos: Responsável pelos diagramas e pelo backend.
+  - Caio Alves da Silva: Responsável pelos teste de endpoint e funcionamento, e pelo frontend.
+
+O link para o vídeo de apresentação do projeto se encontra abaixo:
+https://youtu.be/E5DjwxXik-0
+
 Nosso projeto é um sistema web de gerenciamento de estacionamento, desenvolvido em Java (Servlets/JSP) como projeto acadêmico. 
 O EasyParking permite que clientes reservem vagas em pátios de estacionamento, funcionários controlem a entrada e saída de veículos, e gerentes administrem pátios, reclamações e relatórios.
 
