@@ -19,7 +19,14 @@ Utilizamos:
   - JavaScript com JQuery
   - Tomcat como servidor
   - Eclipse para desenvolver o codigo.
-
+    
+Bibliotecas Java Utilizadas:
+  - Gson-2.6.2
+  - Javax.activation-1.2.0
+  - Javax.mail-1.6.2
+  - Mysql-connector-j-9.7.0
+  - Openpdf-1.3.26
+    
 Login de usuarios para testes:
   - Gerente: email: gerente.teste@easyparking.com || senha: 123456
   - Funcionario: email: funcionario.teste@easyparking.com || senha: 123456
